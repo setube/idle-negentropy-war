@@ -93,7 +93,8 @@ export const useGameStore = defineStore(
       antiMatter: 0, // 反物质
       nanoMaterial: 0, // 纳米材料
       quantumBits: 0, // 量子比特
-      civilizationGenes: 0 // 文明基因
+      civilizationGenes: 0, // 文明基因
+      bioOrder: 0 // 生物有序度
     })
 
     // 科技系统 - 重新设计以支持熵减进程
@@ -385,21 +386,65 @@ export const useGameStore = defineStore(
         entropyStage: 'stellarExtinction',
         description: '每秒减少坐标暴露值',
         description_en: 'Reduces coordinate exposure per second.'
-      },
-      darkMatterCollector: {
-        name: '暗物质收集器',
-        name_en: 'Dark Matter Collector',
-        description: '持续收集宇宙中的暗物质，为后续科技与建筑提供基础资源。',
-        description_en:
-          'Continuously collects dark matter from the universe, providing a foundation for advanced technologies and buildings.',
+      }
+    })
+    buildings.value.darkMatterCollector = {
+      name: '暗物质收集器',
+      name_en: 'Dark Matter Collector',
+      description: '持续收集宇宙中的暗物质，为后续科技与建筑提供基础资源。',
+      description_en:
+        'Continuously collects dark matter from the universe, providing a foundation for advanced technologies and buildings.',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'stellarExtinction', // 恒星熄灭阶段
+      cost: { matter: 5000, energy: 2000 },
+      production: 1 // 每tick基础产出
+    }
+    buildings.value.aotoumRealityPerforator = {
+      name: '奥陶姆现实透孔仪',
+      name_en: 'Aotoum Reality Perforator',
+      description: '链接现实获取有序度，每tick产出有序度。',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'energyMaterialization',
+      cost: { energy: 100000, matter: 50000 },
+      production: 10 // 每tick产出有序度
+    }
+    buildings.value.crystalDefectRepairer = {
+      name: '晶体缺陷修仪',
+      name_en: 'Crystal Defect Repairer',
+      description: '修复材料缺陷，提升纳米材料有序度和产出。',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'energyMaterialization',
+      cost: { nanoMaterial: 1000, energy: 20000 },
+      production: 5 // 每tick提升纳米材料产出
+    }
+    ;(buildings.value.bioEntropyStabilizer = {
+      name: '生物熵稳定舱',
+      name_en: 'Bio-Entropy Stabilizer',
+      description: '精简遗传信息，修复受损，提升生物有序度。',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'energyMaterialization',
+      cost: { energy: 50000, knowledge: 20000 },
+      production: 2 // 每tick提升生物有序度
+    }),
+      (buildings.value.orbitalOptimizer = {
+        name: '行星轨道优化器',
+        name_en: 'Orbital Optimizer',
+        description: '更改行星轨道，降低暴露度。',
         count: 0,
         level: 1,
         unlocked: false,
-        entropyStage: 'stellarExtinction', // 恒星熄灭阶段
-        cost: { matter: 5000, energy: 2000 },
-        production: 1 // 每tick基础产出
-      }
-    })
+        entropyStage: 'energyMaterialization',
+        cost: { energy: 80000, matter: 30000 },
+        production: 20 // 每tick降低暴露度
+      })
 
     // 宇宙状态
     const universeState = ref('chaos') // 'order' | 'chaos'
@@ -500,6 +545,7 @@ export const useGameStore = defineStore(
     })
 
     const canAfford = cost => {
+      if (!cost || typeof cost !== 'object') return false
       return Object.entries(cost).every(([resource, amount]) => resources.value[resource] >= amount)
     }
 
@@ -876,6 +922,33 @@ export const useGameStore = defineStore(
       if (collector && (collector.unlocked || collector.entropyStage === currentEntropyStage.value)) {
         const techEff = tech && tech.unlocked ? tech.efficiency : 1
         resources.value.darkMatter += collector.count * collector.production * techEff
+      }
+
+      // 奥陶姆现实透孔仪产出有序度（负熵）
+      const perforator = buildings.value.aotoumRealityPerforator
+      if (perforator && (perforator.unlocked || perforator.entropyStage === currentEntropyStage.value)) {
+        // 负熵/有序度，变量名仍为entropy，减少即可
+        resources.value.entropy -= perforator.count * perforator.production
+      }
+      // 晶体缺陷修仪提升纳米材料产出
+      const repairer = buildings.value.crystalDefectRepairer
+      if (repairer && (repairer.unlocked || repairer.entropyStage === currentEntropyStage.value)) {
+        resources.value.nanoMaterial += repairer.count * repairer.production
+      }
+      // 生物熵稳定舱提升生物有序度
+      const bioStabilizer = buildings.value.bioEntropyStabilizer
+      if (bioStabilizer && (bioStabilizer.unlocked || bioStabilizer.entropyStage === currentEntropyStage.value)) {
+        if (resources.value.bioOrder !== undefined)
+          resources.value.bioOrder += bioStabilizer.count * bioStabilizer.production
+      }
+      // 行星轨道优化器降低暴露度
+      const optimizer = buildings.value.orbitalOptimizer
+      if (optimizer && (optimizer.unlocked || optimizer.entropyStage === currentEntropyStage.value)) {
+        if (resources.value.coordinateExposure !== undefined)
+          resources.value.coordinateExposure = Math.max(
+            0,
+            resources.value.coordinateExposure - optimizer.count * optimizer.production
+          )
       }
     }
 

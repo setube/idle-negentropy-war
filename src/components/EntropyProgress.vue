@@ -144,9 +144,33 @@
 
   // 格式化数字
   const formatNumber = num => {
-    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M'
-    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K'
-    return num.toFixed(1)
+    if (num < 1000) return Math.floor(num).toString()
+    // 26位字母单位系统
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const units = []
+    // 生成单位：A=1e3, B=1e6, C=1e9, ..., Z=1e78, AA=1e81, AB=1e84...
+    for (let i = 0; i < 100; i++) {
+      // 支持到100个单位
+      let symbol = ''
+      let temp = i
+      if (temp < 26) {
+        symbol = alphabet[temp]
+      } else {
+        // 双字母单位：AA, AB, AC...
+        const first = Math.floor(temp / 26) - 1
+        const second = temp % 26
+        symbol = alphabet[first] + alphabet[second]
+      }
+      const value = Math.pow(1000, i + 1)
+      units.unshift({ value, symbol })
+    }
+    for (let unit of units) {
+      if (num >= unit.value) {
+        const value = (num / unit.value).toFixed(2)
+        return `${value}${unit.symbol}`
+      }
+    }
+    return Math.floor(num).toString()
   }
 
   // 格式化资源名称

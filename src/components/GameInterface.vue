@@ -417,10 +417,33 @@
 
   // 格式化函数
   const formatNumber = num => {
-    if (typeof num !== 'number' || isNaN(num)) return '0'
-    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M'
-    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K'
-    return num.toFixed(1)
+    if (num < 1000) return Math.floor(num).toString()
+    // 26位字母单位系统
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const units = []
+    // 生成单位：A=1e3, B=1e6, C=1e9, ..., Z=1e78, AA=1e81, AB=1e84...
+    for (let i = 0; i < 100; i++) {
+      // 支持到100个单位
+      let symbol = ''
+      let temp = i
+      if (temp < 26) {
+        symbol = alphabet[temp]
+      } else {
+        // 双字母单位：AA, AB, AC...
+        const first = Math.floor(temp / 26) - 1
+        const second = temp % 26
+        symbol = alphabet[first] + alphabet[second]
+      }
+      const value = Math.pow(1000, i + 1)
+      units.unshift({ value, symbol })
+    }
+    for (let unit of units) {
+      if (num >= unit.value) {
+        const value = (num / unit.value).toFixed(2)
+        return `${value}${unit.symbol}`
+      }
+    }
+    return Math.floor(num).toString()
   }
 
   const formatTime = seconds => {
@@ -442,7 +465,8 @@
       antiMatter: '反物质',
       nanoMaterial: '纳米材料',
       quantumBits: '量子比特',
-      civilizationGenes: '文明基因'
+      civilizationGenes: '文明基因',
+      bioOrder: '生物有序度'
     }
     return names[resource] || resource
   }
@@ -461,7 +485,11 @@
       quantumDecoherenceSuppressor: '量子退相干抑制器',
       brownianCaptureNet: '布朗运动捕获网',
       stealthGenerator: '隐匿发生器',
-      darkMatterCollector: '暗物质收集器'
+      darkMatterCollector: '暗物质收集器',
+      aotoumRealityPerforator: '奥陶姆现实透孔仪',
+      crystalDefectRepairer: '晶体缺陷修仪',
+      bioEntropyStabilizer: '生物熵稳定舱',
+      orbitalOptimizer: '行星轨道优化器'
     }
     return names[building] || building
   }
@@ -480,7 +508,11 @@
       quantumDecoherenceTech: '量子退相干技术',
       brownianCaptureTech: '布朗运动捕获技术',
       stealthAlgorithm: '隐匿算法',
-      darkMatterExtraction: '暗物质提取'
+      darkMatterExtraction: '暗物质提取',
+      aotoumRealityPerforatorTech: '现实透孔技术',
+      crystalDefectRepairTech: '晶体缺陷修复技术',
+      bioEntropyStabilizerTech: '生物熵稳定技术',
+      orbitalOptimizerTech: '轨道优化技术'
     }
     return names[tech] || tech
   }
