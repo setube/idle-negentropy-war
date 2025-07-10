@@ -172,10 +172,6 @@
       </template>
       <div class="universe-grid">
         <div class="universe-item">
-          <h4>熵减速率</h4>
-          <p>{{ formatNumber(gameStore.entropyReductionRate) }}/秒</p>
-        </div>
-        <div class="universe-item">
           <h4>坐标暴露值</h4>
           <p>{{ formatNumber(gameStore.coordinateExposure) }}</p>
           <el-progress
@@ -277,7 +273,7 @@
           </li>
           <li>
             <strong>黑暗森林法则</strong>
-            ：坐标暴露值过高会触发降维打击
+            ：坐标暴露值过高会触发降维打击。暴露值代表文明在宇宙中的可被发现程度，过高时将遭受资源损失或建筑摧毁。可通过特定科技和建筑降低暴露值。
           </li>
           <li>
             <strong>三体混沌引擎</strong>
@@ -291,6 +287,14 @@
         <h3>游戏目标</h3>
         <p>
           通过建造熵减建筑、解锁相关科技、管理资源，逐步完成从原子到宇宙的熵减进程。最终目标是实现宇宙单一化，将所有物质重新转化为氢，达到最低熵状态。
+        </p>
+        <h3>进度与熵减阶段说明</h3>
+        <p>
+          游戏的核心进度完全由“熵减阶段”推进决定。每当你手动完成一个熵减阶段，文明将进入新的时代，解锁新的科技和建筑。只有推进到下一个熵减阶段，才会解锁该阶段的科技和建筑内容。文明时代的变迁、资源体系的扩展、科技树的分支，全部与熵减阶段同步。熵减阶段的推进需要消耗资源，建议优先提升产出和效率，避免陷入资源瓶颈或死局。游戏目标是逐步完成所有熵减阶段，最终实现宇宙单一化，达到最低熵状态。
+        </p>
+        <h3>文明时代推进</h3>
+        <p>
+          文明时代的推进完全由熵减阶段决定。每当你完成一个熵减阶段，文明自动进入新时代，解锁新科技和建筑，并获得全局奖励（如科技效率+10%、建筑产出+10%、资源与文明基因奖励等）。文明时代不会倒退，只能不断进化。每次进入新时代，奖励内容会在事件日志中显示。
         </p>
         <h3>操作指南</h3>
         <ul>
@@ -308,7 +312,7 @@
 
 <script setup>
   import { useGameStore } from '../stores/gameStore'
-  import { ref, watch, computed, onMounted } from 'vue'
+  import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
   import {
     Clock,
     Star,
@@ -407,10 +411,9 @@
 
   // 格式化函数
   const formatNumber = num => {
-    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T'
-    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B'
-    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M'
-    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K'
+    if (typeof num !== 'number' || isNaN(num)) return '0'
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M'
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K'
     return num.toFixed(1)
   }
 
@@ -447,7 +450,11 @@
       energyMaterializer: '能量物质化器',
       universalUnifier: '宇宙单一化器',
       quantumComputer: '量子计算机',
-      spacetimePortal: '时空传送门'
+      spacetimePortal: '时空传送门',
+      lowPotentialTrap: '低势能陷阱',
+      quantumDecoherenceSuppressor: '量子退相干抑制器',
+      brownianCaptureNet: '布朗运动捕获网',
+      stealthGenerator: '隐匿发生器'
     }
     return names[building] || building
   }
@@ -461,7 +468,11 @@
       energyConversion: '能量转换',
       universalTheory: '宇宙理论',
       quantumComputing: '量子计算',
-      spacetimeManipulation: '时空操控'
+      spacetimeManipulation: '时空操控',
+      lowPotentialTrapTech: '低势能陷阱技术',
+      quantumDecoherenceTech: '量子退相干技术',
+      brownianCaptureTech: '布朗运动捕获技术',
+      stealthAlgorithm: '隐匿算法'
     }
     return names[tech] || tech
   }
@@ -475,7 +486,11 @@
       energyConversion: { energy: 5000, matter: 2000, knowledge: 1000, darkMatter: 100 },
       universalTheory: { energy: 20000, matter: 10000, knowledge: 5000, darkMatter: 500, antiMatter: 100 },
       quantumComputing: { energy: 100, matter: 50, knowledge: 20 },
-      spacetimeManipulation: { energy: 2000, matter: 1000, knowledge: 500, darkMatter: 50 }
+      spacetimeManipulation: { energy: 2000, matter: 1000, knowledge: 500, darkMatter: 50 },
+      lowPotentialTrapTech: { energy: 500, matter: 200, knowledge: 100 },
+      quantumDecoherenceTech: { energy: 1000, matter: 500, knowledge: 200 },
+      brownianCaptureTech: { energy: 2000, matter: 1000, knowledge: 500 },
+      stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 }
     }
     return costs[techName] || {}
   }
@@ -491,11 +506,10 @@
   // 计算属性
   const unlockedBuildings = computed(() =>
     Object.entries(gameStore.buildings).filter(([name, building]) => {
-      if (!building.unlocked) return false
-      // 只显示当前熵减阶段的建筑，或者支持建筑（量子计算机、时空传送门）
-      if (building.entropyStage) {
-        return building.entropyStage === gameStore.currentEntropyStage
-      }
+      // 已解锁的始终显示
+      if (building.unlocked) return true
+      // 当前阶段可解锁的也显示
+      if (building.entropyStage && building.entropyStage === gameStore.currentEntropyStage) return true
       // 支持建筑始终显示
       return ['quantumComputer', 'spacetimePortal'].includes(name)
     })
@@ -503,17 +517,10 @@
 
   const visibleTechnologies = computed(() => {
     return Object.entries(gameStore.technologies).filter(([name, tech]) => {
-      // 检查前置条件
-      if (tech.prerequisites && tech.prerequisites.length > 0) {
-        if (!tech.prerequisites.every(prereq => gameStore.technologies[prereq].unlocked)) {
-          return false
-        }
-      }
-
-      // 只显示当前熵减阶段相关的科技，或者支持科技
-      if (tech.entropyStage) {
-        return tech.entropyStage === gameStore.currentEntropyStage
-      }
+      // 已解锁的始终显示
+      if (tech.unlocked) return true
+      // 当前阶段可解锁的也显示
+      if (tech.entropyStage && tech.entropyStage === gameStore.currentEntropyStage) return true
       // 支持科技始终显示
       return ['quantumComputing', 'spacetimeManipulation'].includes(name)
     })
@@ -559,6 +566,10 @@
 
   // 组件挂载时启动游戏
   onMounted(() => startGameLoop())
+  // 组件卸载时清理
+  onUnmounted(() => {
+    stopGameLoop()
+  })
 </script>
 
 <style scoped>

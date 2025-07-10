@@ -2,7 +2,7 @@
 
 [点击查看中文版说明 (中文文档)](./README.zh-CN.md)
 
-> A sci-fi incremental/idle game about fighting the entropy of the universe.  
+> A sci-fi incremental/idle game about fighting the entropy of the universe.
 
 ## Game Introduction
 
@@ -15,7 +15,7 @@
 - **Tech Tree & Buildings**: Unlock and upgrade technologies and buildings corresponding to each entropy stage to boost resource production and entropy reduction efficiency.
 - **Resource Management**: Manage multiple resources such as energy, matter, dark matter, antimatter, nanomaterials, and more.
 - **Events & Traits**: Face cosmic disasters, technological breakthroughs, and choose civilization traits for unique bonuses.
-- **Dark Forest Law**: Excessive coordinate exposure will trigger dimensional strikes—develop with caution!
+- **Dark Forest Law**: Excessive coordinate exposure will trigger dimensional strikes—develop with caution! Coordinate exposure represents how easily your civilization can be detected in the universe. High exposure increases the risk of being targeted by higher-dimensional civilizations, resulting in resource loss or building destruction. Certain technologies and buildings can help reduce exposure or provide protection.
 
 ## How to Play
 
@@ -23,6 +23,7 @@
 2. **Build Structures**: Construct and upgrade buildings for the current stage to increase resource output and entropy reduction efficiency.
 3. **Unlock Technologies**: Unlock technologies related to the current stage for new abilities and higher efficiency.
 4. **Advance Eras**: Each completed entropy stage automatically advances to the next civilization era, unlocking new content.
+   - Advancing to a new era grants global rewards: +10% technology efficiency, +10% building output, a large amount of resources, and +1 civilization gene. Eras never regress and only progress forward. Each new era and its rewards are recorded in the event log.
 5. **Manage Threats**: Monitor coordinate exposure and three-body deviation to prevent civilization collapse.
 
 ## Main Systems

@@ -43,8 +43,22 @@
       </div>
     </div>
     <!-- 手动熵减按钮 -->
-    <button @click="performManualEntropyReduction" :disabled="!canPerformEntropyReduction" class="entropy-button">
-      执行熵减 (消耗资源)
+    <button @click="performManualEntropyReduction(1)" :disabled="!canPerformEntropyReduction" class="entropy-button">
+      执行熵减 (×1)
+    </button>
+    <button
+      @click="performManualEntropyReduction(100)"
+      :disabled="!canPerformEntropyReductionBatch(100)"
+      class="entropy-button"
+    >
+      执行熵减 (×100)
+    </button>
+    <button
+      @click="performManualEntropyReduction(1000)"
+      :disabled="!canPerformEntropyReductionBatch(1000)"
+      class="entropy-button"
+    >
+      执行熵减 (×1000)
     </button>
     <!-- 所有阶段概览 -->
     <div class="all-stages">
@@ -100,7 +114,7 @@
   const maxProgress = computed(() => currentStage.value?.maxProgress || 1)
   const progressPercentage = computed(() => (currentProgress.value / maxProgress.value) * 100)
 
-  // 效率计算
+  // 效率计算 
   const currentEfficiency = computed(() => gameStore.getEntropyReductionBonus())
   const quantumBonus = computed(() => {
     const quantumComputer = gameStore.buildings.quantumComputer
@@ -157,8 +171,14 @@
   }
 
   // 手动执行熵减
-  const performManualEntropyReduction = () => {
-    gameStore.performEntropyReduction()
+  const performManualEntropyReduction = (times = 1) => {
+    gameStore.performEntropyReduction(times)
+  }
+
+  // 检查是否可以批量熵减
+  const canPerformEntropyReductionBatch = times => {
+    const cost = currentStageCost.value
+    return Object.entries(cost).every(([resource, amount]) => resources.value[resource] >= amount * times)
   }
 </script>
 
