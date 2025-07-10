@@ -807,35 +807,7 @@ export const useGameStore = defineStore(
       }
 
       // 检查黑暗森林打击
-      const darkForestLevel = 10
-      let strikeChance = 1
-      if (civilizationLevel.value > darkForestLevel) {
-        strikeChance = 0.1 // 只剩10%概率
-      }
-      if (Math.random() < strikeChance) {
-        // 惩罚递增
-        const baseLoss = 1000
-        const knowledgeLoss = baseLoss * (1 + 0.2 * civilizationLevel.value)
-        resources.value.knowledge = Math.max(0, resources.value.knowledge - knowledgeLoss)
-        Object.values(technologies.value).forEach(tech => {
-          if (tech.unlocked) {
-            tech.efficiency *= Math.exp(-0.05 * civilizationLevel.value)
-          }
-        })
-        events.value.unshift({
-          timestamp: Date.now(),
-          title: '降维打击',
-          description: `由于坐标暴露过高，文明遭受降维打击，损失${Math.round(knowledgeLoss)}知识，科技效率下降！`,
-          type: 'strike'
-        })
-      } else if (civilizationLevel.value > darkForestLevel) {
-        events.value.unshift({
-          timestamp: Date.now(),
-          title: '黑暗森林突破',
-          description: '你的文明已超越黑暗森林，降维打击对你无效！',
-          type: 'strike'
-        })
-      }
+      checkDarkForestStrike()
 
       // 更新文明等级
       updateCivilizationLevel()
@@ -884,12 +856,12 @@ export const useGameStore = defineStore(
 
     const buildStructure = buildingName => {
       const building = buildings.value[buildingName]
-      if (!building || !building.unlocked || !canAfford(building.cost)) return
+      if (!building || !canAfford(building.cost)) return
 
-      // 检查是否属于当前熵减阶段
-      if (building.entropyStage && building.entropyStage !== currentEntropyStage.value) {
-        return // 只能建造当前阶段的建筑
-      }
+      // 允许已解锁的、当前阶段的、特殊建筑建造
+      const isCurrentStage = building.entropyStage && building.entropyStage === currentEntropyStage.value
+      const isSpecial = ['quantumComputer', 'spacetimePortal'].includes(buildingName)
+      if (!(building.unlocked || isCurrentStage || isSpecial)) return
 
       Object.entries(building.cost).forEach(([resource, amount]) => {
         resources.value[resource] -= amount
@@ -1051,6 +1023,52 @@ export const useGameStore = defineStore(
       return selectedBranch.value[era?.key] === branchKey
     }
 
+    // 新增：暴露冷却相关变量
+    const exposureCooldown = ref(0) // 单位：秒
+
+    // 降维打击判定逻辑前，增加冷却判断
+    const checkDarkForestStrike = () => {
+      // 冷却期间或者阈值小于100或者文明等级小于1不触发打击
+      if (exposureCooldown.value > 0 || coordinateExposure.value < 100 || civilizationLevel.value < 1) return
+      const darkForestLevel = 10
+      let strikeChance = 1
+      if (civilizationLevel.value > darkForestLevel) {
+        strikeChance = 0.1 // 只剩10%概率
+      }
+      if (Math.random() < strikeChance) {
+        // 惩罚递增
+        const baseLoss = 1000
+        const knowledgeLoss = baseLoss * (1 + 0.2 * civilizationLevel.value)
+        resources.value.knowledge = Math.max(0, resources.value.knowledge - knowledgeLoss)
+        Object.values(technologies.value).forEach(tech => {
+          if (tech.unlocked) {
+            tech.efficiency *= Math.exp(-0.05 * civilizationLevel.value)
+          }
+        })
+        // 暴露值清零并进入冷却
+        if (coordinateExposure.value !== undefined) {
+          coordinateExposure.value = 0
+        }
+        exposureCooldown.value = 300 // 300秒冷却
+        events.value.unshift({
+          timestamp: Date.now(),
+          title: '降维打击',
+          description: `由于坐标暴露过高，文明遭受降维打击，损失${Math.round(
+            knowledgeLoss
+          )}知识，科技效率下降！暴露值已清零，300秒内不会再次被打击。`,
+          type: 'strike'
+        })
+        console.log('降维打击触发', coordinateExposure.value, exposureCooldown.value)
+      } else if (civilizationLevel.value > darkForestLevel) {
+        events.value.unshift({
+          timestamp: Date.now(),
+          title: '黑暗森林突破',
+          description: '你的文明已超越黑暗森林，降维打击对你无效！',
+          type: 'strike'
+        })
+      }
+    }
+
     return {
       // 状态
       gameTime,
@@ -1097,7 +1115,10 @@ export const useGameStore = defineStore(
       getEntropyReductionBonus,
       getCurrentStageTech,
       completeEntropyStage,
-      unlockEntropyStage
+      unlockEntropyStage,
+      // 暴露冷却
+      exposureCooldown,
+      checkDarkForestStrike
     }
   },
   {

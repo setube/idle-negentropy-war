@@ -173,7 +173,12 @@
       <div class="universe-grid">
         <div class="universe-item">
           <h4>坐标暴露值</h4>
-          <p>{{ formatNumber(gameStore.coordinateExposure) }}</p>
+          <p>
+            {{ formatNumber(gameStore.coordinateExposure) }}
+            <el-tag v-if="gameStore.exposureCooldown > 0" type="success" effect="dark" style="margin-left: 8px">
+              安全期：{{ gameStore.exposureCooldown }}s
+            </el-tag>
+          </p>
           <el-progress
             :percentage="
               Math.min(Math.max((gameStore.coordinateExposure / gameStore.concealmentAbility) * 100, 0), 100)
@@ -336,6 +341,7 @@
   const gameRunning = ref(true)
   const gameInterval = ref(null)
   const showHelp = ref(false)
+  const exposureCooldownTimer = ref(null)
 
   // 游戏循环
   const startGameLoop = () => {
@@ -565,10 +571,21 @@
   }
 
   // 组件挂载时启动游戏
-  onMounted(() => startGameLoop())
+  onMounted(() => {
+    startGameLoop()
+    exposureCooldownTimer.value = setInterval(() => {
+      if (gameStore.exposureCooldown > 0) {
+        gameStore.exposureCooldown--
+      }
+    }, 1000)
+  })
   // 组件卸载时清理
   onUnmounted(() => {
     stopGameLoop()
+    if (exposureCooldownTimer.value) {
+      clearInterval(exposureCooldownTimer.value)
+      exposureCooldownTimer.value = null
+    }
   })
 </script>
 

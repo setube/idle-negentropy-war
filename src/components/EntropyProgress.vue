@@ -11,7 +11,9 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
-      <div class="progress-text">{{ currentProgress }} / {{ maxProgress }} ({{ progressPercentage.toFixed(1) }}%)</div>
+      <div class="progress-text">
+        {{ currentProgress.toFixed(1) }} / {{ maxProgress }} ({{ progressPercentage.toFixed(1) }}%)
+      </div>
     </div>
     <!-- 阶段效果 -->
     <div class="stage-effect">
@@ -114,7 +116,7 @@
   const maxProgress = computed(() => currentStage.value?.maxProgress || 1)
   const progressPercentage = computed(() => (currentProgress.value / maxProgress.value) * 100)
 
-  // 效率计算 
+  // 效率计算
   const currentEfficiency = computed(() => gameStore.getEntropyReductionBonus())
   const quantumBonus = computed(() => {
     const quantumComputer = gameStore.buildings.quantumComputer
