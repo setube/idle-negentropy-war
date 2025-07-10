@@ -110,13 +110,16 @@ export const useGameStore = defineStore(
         entropyStage: 'atomicOrdering'
       },
       thermalControl: {
+        name: '热控制',
+        name_en: 'Thermal Control',
+        description: '通过精确控制分子热运动，降低系统温度，为更高阶有序度打下基础。',
+        description_en:
+          'Precisely controls molecular thermal motion to reduce system temperature and lay the foundation for higher order.',
         unlocked: false,
-        level: 0,
-        efficiency: 1,
-        prerequisites: ['atomicManipulation'],
-        group: '基础科技',
-        effect: '解锁分子冷却能力',
-        entropyStage: 'molecularCooling'
+        efficiency: 1.2,
+        cost: { energy: 50, matter: 20, knowledge: 10 },
+        entropyStage: 'molecularCooling',
+        prerequisites: ['atomicManipulation']
       },
       // 恒星科技 - 支持恒星级熵减
       stellarEngineering: {
@@ -218,7 +221,6 @@ export const useGameStore = defineStore(
         description_en: 'Increases the output efficiency of Dark Matter Collectors.',
         unlocked: false,
         efficiency: 1.5, // 产出提升倍率
-        cost: { knowledge: 10000, energy: 5000 },
         entropyStage: 'stellarExtinction'
       }
     })
@@ -399,6 +401,7 @@ export const useGameStore = defineStore(
       unlocked: false,
       entropyStage: 'stellarExtinction', // 恒星熄灭阶段
       cost: { matter: 5000, energy: 2000 },
+      upgradeCost: { matter: 10000, energy: 4000 },
       production: 1 // 每tick基础产出
     }
     buildings.value.aotoumRealityPerforator = {
@@ -410,6 +413,7 @@ export const useGameStore = defineStore(
       unlocked: false,
       entropyStage: 'energyMaterialization',
       cost: { energy: 100000, matter: 50000 },
+      upgradeCost: { energy: 200000, matter: 100000 },
       production: 10 // 每tick产出有序度
     }
     buildings.value.crystalDefectRepairer = {
@@ -421,9 +425,10 @@ export const useGameStore = defineStore(
       unlocked: false,
       entropyStage: 'energyMaterialization',
       cost: { nanoMaterial: 1000, energy: 20000 },
+      upgradeCost: { nanoMaterial: 2000, energy: 40000 },
       production: 5 // 每tick提升纳米材料产出
     }
-    ;(buildings.value.bioEntropyStabilizer = {
+    buildings.value.bioEntropyStabilizer = {
       name: '生物熵稳定舱',
       name_en: 'Bio-Entropy Stabilizer',
       description: '精简遗传信息，修复受损，提升生物有序度。',
@@ -432,19 +437,21 @@ export const useGameStore = defineStore(
       unlocked: false,
       entropyStage: 'energyMaterialization',
       cost: { energy: 50000, knowledge: 20000 },
+      upgradeCost: { energy: 100000, knowledge: 40000 },
       production: 2 // 每tick提升生物有序度
-    }),
-      (buildings.value.orbitalOptimizer = {
-        name: '行星轨道优化器',
-        name_en: 'Orbital Optimizer',
-        description: '更改行星轨道，降低暴露度。',
-        count: 0,
-        level: 1,
-        unlocked: false,
-        entropyStage: 'energyMaterialization',
-        cost: { energy: 80000, matter: 30000 },
-        production: 20 // 每tick降低暴露度
-      })
+    }
+    buildings.value.orbitalOptimizer = {
+      name: '行星轨道优化器',
+      name_en: 'Orbital Optimizer',
+      description: '更改行星轨道，降低暴露度。',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'energyMaterialization',
+      cost: { energy: 80000, matter: 30000 },
+      upgradeCost: { matter: 60000, energy: 160000 },
+      production: 20 // 每tick降低暴露度
+    }
 
     // 宇宙状态
     const universeState = ref('chaos') // 'order' | 'chaos'
@@ -659,6 +666,11 @@ export const useGameStore = defineStore(
       if (stageKey === 'stellarExtinction') {
         buildings.value.darkMatterCollector.unlocked = true
         technologies.value.darkMatterExtraction.unlocked = true
+      }
+
+      // 在推进到分子冷却阶段时自动解锁热控制科技
+      if (stageKey === 'molecularCooling') {
+        technologies.value.thermalControl.unlocked = true
       }
     }
 

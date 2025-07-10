@@ -22,7 +22,7 @@
         </div>
       </template>
       <div class="event-list">
-        <div v-for="event in gameStore.events" :key="event.timestamp" class="event-item">
+        <div v-for="(event, key) in gameStore.events" :key="key" class="event-item">
           <div class="event-time">{{ formatTime(event.timestamp) }}</div>
           <div class="event-content">
             <h4>{{ event.title }}</h4>

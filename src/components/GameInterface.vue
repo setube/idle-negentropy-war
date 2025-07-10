@@ -90,11 +90,14 @@
             <div class="building-info">
               <h4>{{ getBuildingName(name) }}</h4>
               <p v-if="building.description" class="building-description">{{ building.description }}</p>
-              <p>数量: {{ building.count }}</p>
-              <p>等级: {{ building.level }}</p>
             </div>
-            <div class="building-cost">
-              <p>成本:</p>
+            <div class="building-upgrade">
+              <p>建筑信息:</p>
+              <div>数量: {{ formatNumber(building.count) }}</div>
+              <div>等级: {{ formatNumber(building.level) }}</div>
+            </div>
+            <div class="building-upgrade">
+              <p>建造消耗:</p>
               <div v-for="(cost, resource) in building.cost" :key="resource">
                 {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
               </div>
@@ -146,7 +149,7 @@
               </p>
             </div>
             <div class="tech-cost" v-if="!tech.unlocked">
-              <p>解锁成本:</p>
+              <p>解锁消耗:</p>
               <div v-for="(cost, resource) in getTechCost(name)" :key="resource">
                 {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
               </div>
@@ -520,7 +523,7 @@
   const getTechCost = techName => {
     const costs = {
       atomicManipulation: { energy: 10, matter: 5 },
-      thermalControl: { energy: 50, matter: 20 },
+      thermalControl: { energy: 50, matter: 20, knowledge: 10 },
       stellarEngineering: { energy: 200, matter: 100, knowledge: 50 },
       blackholePhysics: { energy: 1000, matter: 500, knowledge: 200, darkMatter: 10 },
       energyConversion: { energy: 5000, matter: 2000, knowledge: 1000, darkMatter: 100 },

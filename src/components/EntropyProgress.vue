@@ -12,7 +12,7 @@
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
       <div class="progress-text">
-        {{ currentProgress.toFixed(1) }} / {{ maxProgress }} ({{ progressPercentage.toFixed(1) }}%)
+        {{ formatNumber(currentProgress) }} / {{ formatNumber(maxProgress) }} ({{ progressPercentage.toFixed(1) }}%)
       </div>
     </div>
     <!-- 阶段效果 -->
