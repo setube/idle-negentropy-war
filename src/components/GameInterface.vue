@@ -491,7 +491,8 @@
       crystalDefectRepairer: '晶体缺陷修仪',
       bioEntropyStabilizer: '生物熵稳定舱',
       orbitalOptimizer: '行星轨道优化器',
-      antiMatterSynthesizer: '反物质合成器'
+      antiMatterSynthesizer: '反物质合成器',
+      nanoFactory: '纳米工厂'
     }
     return names[building] || building
   }
@@ -515,7 +516,8 @@
       crystalDefectRepairTech: '晶体缺陷修复技术',
       bioEntropyStabilizerTech: '生物熵稳定技术',
       orbitalOptimizerTech: '轨道优化技术',
-      antiMatterSynthesis: '反物质合成'
+      antiMatterSynthesis: '反物质合成',
+      nanoManufacturing: '纳米制造'
     }
     return names[tech] || tech
   }
@@ -535,7 +537,8 @@
       brownianCaptureTech: { energy: 2000, matter: 1000, knowledge: 500 },
       stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 },
       darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 },
-      antiMatterSynthesis: { knowledge: 20000, energy: 100000, darkMatter: 10000 }
+      antiMatterSynthesis: { knowledge: 20000, energy: 100000, darkMatter: 10000 },
+      nanoManufacturing: { knowledge: 5000, energy: 5000, matter: 2000 }
     }
     return costs[techName] || {}
   }

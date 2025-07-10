@@ -233,6 +233,17 @@ export const useGameStore = defineStore(
         cost: { knowledge: 20000, energy: 100000, darkMatter: 10000 },
         entropyStage: 'blackholeDecompression',
         prerequisites: ['blackholePhysics']
+      },
+      nanoManufacturing: {
+        name: '纳米制造',
+        name_en: 'Nano Manufacturing',
+        description: '提升纳米工厂的产出效率。',
+        description_en: 'Increases the output efficiency of Nano Factories.',
+        unlocked: false,
+        efficiency: 2, // 产出提升倍率
+        cost: { knowledge: 5000, energy: 5000, matter: 2000 },
+        entropyStage: 'molecularCooling',
+        prerequisites: ['thermalControl']
       }
     })
 
@@ -475,6 +486,18 @@ export const useGameStore = defineStore(
       upgradeCost: { matter: 60000, energy: 160000 },
       production: 20 // 每tick降低暴露度
     }
+    buildings.value.nanoFactory = {
+      name: '纳米工厂',
+      name_en: 'Nano Factory',
+      description: '通过高精度制造流程批量生产纳米材料。',
+      count: 0,
+      level: 1,
+      unlocked: false,
+      entropyStage: 'molecularCooling',
+      cost: { matter: 2000, energy: 1000 },
+      upgradeCost: { matter: 4000, energy: 2000 },
+      production: 1 // 每tick基础产出
+    }
 
     // 宇宙状态
     const universeState = ref('chaos') // 'order' | 'chaos'
@@ -701,6 +724,12 @@ export const useGameStore = defineStore(
         buildings.value.antiMatterSynthesizer.unlocked = true
         technologies.value.antiMatterSynthesis.unlocked = true
       }
+
+      // 分子冷却阶段推进时自动解锁纳米工厂和纳米制造科技
+      if (stageKey === 'molecularCooling') {
+        buildings.value.nanoFactory.unlocked = true
+        technologies.value.nanoManufacturing.unlocked = true
+      }
     }
 
     // 建筑-科技映射表：决定每个建筑受哪项科技效率影响
@@ -777,7 +806,8 @@ export const useGameStore = defineStore(
           'quantumComputing',
           'lowPotentialTrapTech',
           'quantumDecoherenceTech',
-          'brownianCaptureTech'
+          'brownianCaptureTech',
+          'nanoManufacturing'
         ],
         stellarExtinction: ['stellarEngineering'],
         blackholeDecompression: ['blackholePhysics', 'spacetimeManipulation'],
@@ -994,6 +1024,14 @@ export const useGameStore = defineStore(
         const techEff = antiMatterTech && antiMatterTech.unlocked ? antiMatterTech.efficiency : 1
         resources.value.antiMatter += synthesizer.count * synthesizer.production * techEff
       }
+
+      // 纳米工厂产出
+      const nanoFactory = buildings.value.nanoFactory
+      const nanoTech = technologies.value.nanoManufacturing
+      if (nanoFactory && (nanoFactory.unlocked || nanoFactory.entropyStage === currentEntropyStage.value)) {
+        const techEff = nanoTech && nanoTech.unlocked ? nanoTech.efficiency : 1
+        resources.value.nanoMaterial += nanoFactory.count * nanoFactory.production * techEff
+      }
     }
 
     const addEvent = event => {
@@ -1061,7 +1099,8 @@ export const useGameStore = defineStore(
         brownianCaptureNet: { matter: 150, energy: 80 },
         stealthGenerator: { matter: 2000, energy: 1000 },
         darkMatterCollector: { matter: 5000, energy: 2000 },
-        antiMatterSynthesizer: { matter: 50000, darkMatter: 1000 }
+        antiMatterSynthesizer: { matter: 50000, darkMatter: 1000 },
+        nanoFactory: { matter: 2000, energy: 1000 }
       }
 
       if (baseCosts[buildingName]) {
@@ -1108,7 +1147,8 @@ export const useGameStore = defineStore(
         blackhole: { energy: 500000, matter: 200000, knowledge: 100000, darkMatter: 500 },
         stealthAlgorithm: { energy: 1000, matter: 500, knowledge: 50 },
         darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 },
-        antiMatterSynthesis: { energy: 20000, matter: 10000, knowledge: 1000, darkMatter: 10000 }
+        antiMatterSynthesis: { energy: 20000, matter: 10000, knowledge: 1000, darkMatter: 10000 },
+        nanoManufacturing: { energy: 5000, matter: 2000, knowledge: 1000 }
       }
       return costs[techName] || {}
     }
@@ -1166,7 +1206,8 @@ export const useGameStore = defineStore(
         brownianCaptureTech: 'brownianCaptureNet',
         stealthAlgorithm: 'stealthGenerator',
         darkMatterExtraction: 'darkMatterCollector',
-        antiMatterSynthesis: 'antiMatterSynthesizer'
+        antiMatterSynthesis: 'antiMatterSynthesizer',
+        nanoManufacturing: 'nanoFactory'
       }
       const buildingName = techToBuilding[techName]
       if (buildingName && buildings.value[buildingName]) {
