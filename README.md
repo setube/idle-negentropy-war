@@ -1,6 +1,14 @@
+<p align="center">
+    <img src="./repository-images.png" width="400">
+</p>
+<p align="center">
+    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
+    <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
+</p>
+
 # Entropy Reduction War
 
-[点击查看中文版说明 (中文文档)](./README.zh-CN.md)
+[Click to view Chinese version instructions (Chinese document)](./README.zh-CN.md)
 
 > A sci-fi incremental/idle game about fighting the entropy of the universe.
 

@@ -460,7 +460,8 @@
       lowPotentialTrap: '低势能陷阱',
       quantumDecoherenceSuppressor: '量子退相干抑制器',
       brownianCaptureNet: '布朗运动捕获网',
-      stealthGenerator: '隐匿发生器'
+      stealthGenerator: '隐匿发生器',
+      darkMatterCollector: '暗物质收集器'
     }
     return names[building] || building
   }
@@ -478,7 +479,8 @@
       lowPotentialTrapTech: '低势能陷阱技术',
       quantumDecoherenceTech: '量子退相干技术',
       brownianCaptureTech: '布朗运动捕获技术',
-      stealthAlgorithm: '隐匿算法'
+      stealthAlgorithm: '隐匿算法',
+      darkMatterExtraction: '暗物质提取'
     }
     return names[tech] || tech
   }
@@ -496,7 +498,8 @@
       lowPotentialTrapTech: { energy: 500, matter: 200, knowledge: 100 },
       quantumDecoherenceTech: { energy: 1000, matter: 500, knowledge: 200 },
       brownianCaptureTech: { energy: 2000, matter: 1000, knowledge: 500 },
-      stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 }
+      stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 },
+      darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 }
     }
     return costs[techName] || {}
   }

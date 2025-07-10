@@ -209,6 +209,16 @@ export const useGameStore = defineStore(
         group: '隐匿科技',
         effect: '解锁隐匿发生器，降低暴露值增长速率',
         entropyStage: 'stellarExtinction'
+      },
+      darkMatterExtraction: {
+        name: '暗物质提取',
+        name_en: 'Dark Matter Extraction',
+        description: '提升暗物质收集器的产出效率。',
+        description_en: 'Increases the output efficiency of Dark Matter Collectors.',
+        unlocked: false,
+        efficiency: 1.5, // 产出提升倍率
+        cost: { knowledge: 10000, energy: 5000 },
+        entropyStage: 'stellarExtinction'
       }
     })
 
@@ -217,6 +227,7 @@ export const useGameStore = defineStore(
       // 基础建筑
       atomicSorter: {
         name: '原子排序器',
+        name_en: 'Atomic Sorter',
         count: 0,
         level: 1,
         production: 1,
@@ -224,10 +235,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 20, energy: 10 },
         unlocked: true,
         entropyStage: 'atomicOrdering',
-        description: '手动排列原子，建立有序结构'
+        description: '手动排列原子，建立有序结构',
+        description_en: 'Manually arrange atoms to establish an ordered structure.'
       },
       molecularCooler: {
         name: '分子冷却器',
+        name_en: 'Molecular Cooler',
         count: 0,
         level: 1,
         production: 5,
@@ -235,11 +248,13 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 200, energy: 100 },
         unlocked: false,
         entropyStage: 'molecularCooling',
-        description: '减缓分子热运动，降低系统温度'
+        description: '减缓分子热运动，降低系统温度',
+        description_en: 'Slows molecular thermal motion to reduce system temperature.'
       },
       // 恒星建筑
       stellarExtinguisher: {
         name: '恒星熄灭器',
+        name_en: 'Stellar Extinguisher',
         count: 0,
         level: 1,
         production: 20,
@@ -247,11 +262,13 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 2000, energy: 1000, darkMatter: 20 },
         unlocked: false,
         entropyStage: 'stellarExtinction',
-        description: '熄灭恒星，停止核聚变产生的熵增'
+        description: '熄灭恒星，停止核聚变产生的熵增',
+        description_en: 'Extinguishes stars to stop entropy production from nuclear fusion.'
       },
       // 黑洞建筑
       blackholeDecompressor: {
         name: '黑洞解压器',
+        name_en: 'Blackhole Decompressor',
         count: 0,
         level: 1,
         production: 100,
@@ -259,11 +276,13 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 20000, energy: 10000, darkMatter: 200, antiMatter: 100 },
         unlocked: false,
         entropyStage: 'blackholeDecompression',
-        description: '解压黑洞，释放被压缩的信息'
+        description: '解压黑洞，释放被压缩的信息',
+        description_en: 'Decompresses black holes to release compressed information.'
       },
       // 宇宙建筑
       energyMaterializer: {
         name: '能量物质化器',
+        name_en: 'Energy Materializer',
         count: 0,
         level: 1,
         production: 500,
@@ -271,10 +290,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 200000, energy: 100000, darkMatter: 1000, antiMatter: 400 },
         unlocked: false,
         entropyStage: 'energyMaterialization',
-        description: '将纯能量转化为有序物质'
+        description: '将纯能量转化为有序物质',
+        description_en: 'Converts pure energy into ordered matter.'
       },
       universalUnifier: {
         name: '宇宙单一化器',
+        name_en: 'Universal Unifier',
         count: 0,
         level: 1,
         production: 2000,
@@ -282,11 +303,13 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 2000000, energy: 1000000, darkMatter: 2000, antiMatter: 1000, nanoMaterial: 200 },
         unlocked: false,
         entropyStage: 'universalUnification',
-        description: '将所有物质重新转化为氢，达到最低熵状态'
+        description: '将所有物质重新转化为氢，达到最低熵状态',
+        description_en: 'Reconverts all matter into hydrogen to achieve the lowest entropy state.'
       },
       // 支持建筑
       quantumComputer: {
         name: '量子计算机',
+        name_en: 'Quantum Computer',
         count: 0,
         level: 1,
         production: 0, // 不直接产出，提升熵减效率
@@ -294,10 +317,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 2000, energy: 1000, quantumBits: 20 },
         unlocked: false,
         entropyStage: 'molecularCooling',
-        description: '提升熵减计算效率'
+        description: '提升熵减计算效率',
+        description_en: 'Enhances entropy reduction calculation efficiency.'
       },
       spacetimePortal: {
         name: '时空传送门',
+        name_en: 'Spacetime Portal',
         count: 0,
         level: 1,
         production: 0, // 不直接产出，提升时空操控能力
@@ -305,10 +330,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 200000, energy: 100000, darkMatter: 200 },
         unlocked: false,
         entropyStage: 'blackholeDecompression',
-        description: '提升时空操控能力'
+        description: '提升时空操控能力',
+        description_en: 'Enhances spacetime manipulation capabilities.'
       },
       lowPotentialTrap: {
         name: '低势能陷阱',
+        name_en: 'Low Potential Trap',
         count: 0,
         level: 1,
         production: { energy: 5, matter: 2 },
@@ -316,10 +343,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 400, energy: 200 },
         unlocked: false,
         entropyStage: 'molecularCooling',
-        description: '减缓热运动，利用温差产出能量和物质'
+        description: '减缓热运动，利用温差产出能量和物质',
+        description_en: 'Slows thermal motion to produce energy and matter using temperature difference.'
       },
       quantumDecoherenceSuppressor: {
         name: '量子退相干抑制器',
+        name_en: 'Quantum Decoherence Suppressor',
         count: 0,
         level: 1,
         production: { quantumBits: 1, energy: -10 },
@@ -327,10 +356,12 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 600, energy: 400 },
         unlocked: false,
         entropyStage: 'molecularCooling',
-        description: '消耗能量，产生量子比特'
+        description: '消耗能量，产生量子比特',
+        description_en: 'Consumes energy to produce quantum bits.'
       },
       brownianCaptureNet: {
         name: '布朗运动捕获网',
+        name_en: 'Brownian Capture Net',
         count: 0,
         level: 1,
         production: 0,
@@ -338,11 +369,13 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 300, energy: 160 },
         unlocked: false,
         entropyStage: 'molecularCooling',
-        description: '提升原子排序器生产效率'
+        description: '提升原子排序器生产效率',
+        description_en: 'Enhances atomic sorter production efficiency.'
       },
       // 新建筑
       stealthGenerator: {
         name: '隐匿发生器',
+        name_en: 'Stealth Generator',
         count: 0,
         level: 1,
         production: 0, // 不产出资源，减少暴露值
@@ -350,7 +383,21 @@ export const useGameStore = defineStore(
         upgradeCost: { matter: 4000, energy: 2000 },
         unlocked: false,
         entropyStage: 'stellarExtinction',
-        description: '每秒减少坐标暴露值'
+        description: '每秒减少坐标暴露值',
+        description_en: 'Reduces coordinate exposure per second.'
+      },
+      darkMatterCollector: {
+        name: '暗物质收集器',
+        name_en: 'Dark Matter Collector',
+        description: '持续收集宇宙中的暗物质，为后续科技与建筑提供基础资源。',
+        description_en:
+          'Continuously collects dark matter from the universe, providing a foundation for advanced technologies and buildings.',
+        count: 0,
+        level: 1,
+        unlocked: false,
+        entropyStage: 'stellarExtinction', // 恒星熄灭阶段
+        cost: { matter: 5000, energy: 2000 },
+        production: 1 // 每tick基础产出
       }
     })
 
@@ -561,6 +608,12 @@ export const useGameStore = defineStore(
 
       // 解锁相关科技
       unlockStageTechnologies(stageKey)
+
+      // 恒星熄灭阶段自动解锁暗物质收集器和科技
+      if (stageKey === 'stellarExtinction') {
+        buildings.value.darkMatterCollector.unlocked = true
+        technologies.value.darkMatterExtraction.unlocked = true
+      }
     }
 
     // 建筑-科技映射表：决定每个建筑受哪项科技效率影响
@@ -816,6 +869,14 @@ export const useGameStore = defineStore(
       triggerRandomEvent()
       updateEvent()
       autoUpgradeBuildings()
+
+      // 补充资源增加的相关逻辑
+      const collector = buildings.value.darkMatterCollector
+      const tech = technologies.value.darkMatterExtraction
+      if (collector && (collector.unlocked || collector.entropyStage === currentEntropyStage.value)) {
+        const techEff = tech && tech.unlocked ? tech.efficiency : 1
+        resources.value.darkMatter += collector.count * collector.production * techEff
+      }
     }
 
     const addEvent = event => {
@@ -881,7 +942,8 @@ export const useGameStore = defineStore(
         lowPotentialTrap: { matter: 200, energy: 100 },
         quantumDecoherenceSuppressor: { matter: 300, energy: 200 },
         brownianCaptureNet: { matter: 150, energy: 80 },
-        stealthGenerator: { matter: 2000, energy: 1000 }
+        stealthGenerator: { matter: 2000, energy: 1000 },
+        darkMatterCollector: { matter: 5000, energy: 2000 }
       }
 
       if (baseCosts[buildingName]) {
@@ -926,7 +988,8 @@ export const useGameStore = defineStore(
         ai: { energy: 20000, matter: 10000, knowledge: 1000, quantumBits: 50 },
         trade: { energy: 1000, matter: 500, knowledge: 50 },
         blackhole: { energy: 500000, matter: 200000, knowledge: 100000, darkMatter: 500 },
-        stealthAlgorithm: { energy: 1000, matter: 500, knowledge: 50 }
+        stealthAlgorithm: { energy: 1000, matter: 500, knowledge: 50 },
+        darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 }
       }
       return costs[techName] || {}
     }
@@ -982,7 +1045,8 @@ export const useGameStore = defineStore(
         lowPotentialTrapTech: 'lowPotentialTrap',
         quantumDecoherenceTech: 'quantumDecoherenceSuppressor',
         brownianCaptureTech: 'brownianCaptureNet',
-        stealthAlgorithm: 'stealthGenerator'
+        stealthAlgorithm: 'stealthGenerator',
+        darkMatterExtraction: 'darkMatterCollector'
       }
       const buildingName = techToBuilding[techName]
       if (buildingName && buildings.value[buildingName]) {

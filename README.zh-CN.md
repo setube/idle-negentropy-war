@@ -1,7 +1,16 @@
+<p align="center">
+  <img src="./repository-images.zh-CN.png" width="400">
+</p>
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
+  <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
+</p>
+
 # 熵减战争 (Entropy Reduction War)
 
-> 对抗宇宙熵增的科幻放置/增量游戏  
-> A sci-fi incremental/idle game about fighting the entropy of the universe.
+[点击查看英文版说明 (英文文档)](./README.md)
+
+> 对抗宇宙熵增的科幻放置/增量游戏
 
 ## 游戏简介
 
