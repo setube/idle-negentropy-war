@@ -424,7 +424,6 @@
     // 26位字母单位系统
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     const units = []
-    // 生成单位：A=1e3, B=1e6, C=1e9, ..., Z=1e78, AA=1e81, AB=1e84...
     for (let i = 0; i < 100; i++) {
       // 支持到100个单位
       let symbol = ''
@@ -432,7 +431,6 @@
       if (temp < 26) {
         symbol = alphabet[temp]
       } else {
-        // 双字母单位：AA, AB, AC...
         const first = Math.floor(temp / 26) - 1
         const second = temp % 26
         symbol = alphabet[first] + alphabet[second]
@@ -492,7 +490,8 @@
       aotoumRealityPerforator: '奥陶姆现实透孔仪',
       crystalDefectRepairer: '晶体缺陷修仪',
       bioEntropyStabilizer: '生物熵稳定舱',
-      orbitalOptimizer: '行星轨道优化器'
+      orbitalOptimizer: '行星轨道优化器',
+      antiMatterSynthesizer: '反物质合成器'
     }
     return names[building] || building
   }
@@ -515,7 +514,8 @@
       aotoumRealityPerforatorTech: '现实透孔技术',
       crystalDefectRepairTech: '晶体缺陷修复技术',
       bioEntropyStabilizerTech: '生物熵稳定技术',
-      orbitalOptimizerTech: '轨道优化技术'
+      orbitalOptimizerTech: '轨道优化技术',
+      antiMatterSynthesis: '反物质合成'
     }
     return names[tech] || tech
   }
@@ -534,7 +534,8 @@
       quantumDecoherenceTech: { energy: 1000, matter: 500, knowledge: 200 },
       brownianCaptureTech: { energy: 2000, matter: 1000, knowledge: 500 },
       stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 },
-      darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 }
+      darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 },
+      antiMatterSynthesis: { knowledge: 20000, energy: 100000, darkMatter: 10000 }
     }
     return costs[techName] || {}
   }

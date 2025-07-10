@@ -222,6 +222,17 @@ export const useGameStore = defineStore(
         unlocked: false,
         efficiency: 1.5, // 产出提升倍率
         entropyStage: 'stellarExtinction'
+      },
+      antiMatterSynthesis: {
+        name: '反物质合成',
+        name_en: 'AntiMatter Synthesis',
+        description: '提升反物质合成器的产出效率。',
+        description_en: 'Increases the output efficiency of AntiMatter Synthesizers.',
+        unlocked: false,
+        efficiency: 2, // 产出提升倍率
+        cost: { knowledge: 20000, energy: 100000, darkMatter: 10000 },
+        entropyStage: 'blackholeDecompression',
+        prerequisites: ['blackholePhysics']
       }
     })
 
@@ -388,6 +399,18 @@ export const useGameStore = defineStore(
         entropyStage: 'stellarExtinction',
         description: '每秒减少坐标暴露值',
         description_en: 'Reduces coordinate exposure per second.'
+      },
+      antiMatterSynthesizer: {
+        name: '反物质合成器',
+        name_en: 'AntiMatter Synthesizer',
+        description: '通过极端能量场合成反物质，为终极科技提供动力。',
+        count: 0,
+        level: 1,
+        unlocked: false,
+        entropyStage: 'blackholeDecompression',
+        cost: { energy: 50000, darkMatter: 1000 },
+        upgradeCost: { energy: 100000, darkMatter: 2000 },
+        production: 1 // 每tick基础产出
       }
     })
     buildings.value.darkMatterCollector = {
@@ -672,6 +695,12 @@ export const useGameStore = defineStore(
       if (stageKey === 'molecularCooling') {
         technologies.value.thermalControl.unlocked = true
       }
+
+      // 黑洞解压阶段自动解锁反物质合成器和科技
+      if (stageKey === 'blackholeDecompression') {
+        buildings.value.antiMatterSynthesizer.unlocked = true
+        technologies.value.antiMatterSynthesis.unlocked = true
+      }
     }
 
     // 建筑-科技映射表：决定每个建筑受哪项科技效率影响
@@ -852,18 +881,13 @@ export const useGameStore = defineStore(
 
           // 低势能陷阱产出
           if (building === 'lowPotentialTrap') {
-            resources.value.energy += data.count * data.level * data.production.energy
-            resources.value.matter += data.count * data.level * data.production.matter
+            resources.value.energy += data.count * data.level * 5
+            resources.value.matter += data.count * data.level * 2
           }
           // 量子退相干抑制器产出
           if (building === 'quantumDecoherenceSuppressor') {
-            resources.value.energy += data.count * data.level * data.production.energy // 负数，消耗
-            resources.value.quantumBits += data.count * data.level * data.production.quantumBits
-          }
-          // 布朗运动捕获网加成
-          if (building === 'brownianCaptureNet') {
-            // 记录加成，后续用于原子排序器
-            brownianBonus = 1 + 0.2 * data.count * data.level
+            resources.value.energy += data.count * data.level * -10 // 负数，消耗
+            resources.value.quantumBits += data.count * data.level * 1
           }
         }
       })
@@ -962,6 +986,14 @@ export const useGameStore = defineStore(
             resources.value.coordinateExposure - optimizer.count * optimizer.production
           )
       }
+
+      // 反物质合成器产出
+      const synthesizer = buildings.value.antiMatterSynthesizer
+      const antiMatterTech = technologies.value.antiMatterSynthesis
+      if (synthesizer && (synthesizer.unlocked || synthesizer.entropyStage === currentEntropyStage.value)) {
+        const techEff = antiMatterTech && antiMatterTech.unlocked ? antiMatterTech.efficiency : 1
+        resources.value.antiMatter += synthesizer.count * synthesizer.production * techEff
+      }
     }
 
     const addEvent = event => {
@@ -1028,7 +1060,8 @@ export const useGameStore = defineStore(
         quantumDecoherenceSuppressor: { matter: 300, energy: 200 },
         brownianCaptureNet: { matter: 150, energy: 80 },
         stealthGenerator: { matter: 2000, energy: 1000 },
-        darkMatterCollector: { matter: 5000, energy: 2000 }
+        darkMatterCollector: { matter: 5000, energy: 2000 },
+        antiMatterSynthesizer: { matter: 50000, darkMatter: 1000 }
       }
 
       if (baseCosts[buildingName]) {
@@ -1074,7 +1107,8 @@ export const useGameStore = defineStore(
         trade: { energy: 1000, matter: 500, knowledge: 50 },
         blackhole: { energy: 500000, matter: 200000, knowledge: 100000, darkMatter: 500 },
         stealthAlgorithm: { energy: 1000, matter: 500, knowledge: 50 },
-        darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 }
+        darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 },
+        antiMatterSynthesis: { energy: 20000, matter: 10000, knowledge: 1000, darkMatter: 10000 }
       }
       return costs[techName] || {}
     }
@@ -1131,7 +1165,8 @@ export const useGameStore = defineStore(
         quantumDecoherenceTech: 'quantumDecoherenceSuppressor',
         brownianCaptureTech: 'brownianCaptureNet',
         stealthAlgorithm: 'stealthGenerator',
-        darkMatterExtraction: 'darkMatterCollector'
+        darkMatterExtraction: 'darkMatterCollector',
+        antiMatterSynthesis: 'antiMatterSynthesizer'
       }
       const buildingName = techToBuilding[techName]
       if (buildingName && buildings.value[buildingName]) {
@@ -1198,16 +1233,15 @@ export const useGameStore = defineStore(
         if (coordinateExposure.value !== undefined) {
           coordinateExposure.value = 0
         }
-        exposureCooldown.value = 300 // 300秒冷却
+        exposureCooldown.value = 60 // 60秒冷却
         events.value.unshift({
           timestamp: Date.now(),
           title: '降维打击',
           description: `由于坐标暴露过高，文明遭受降维打击，损失${Math.round(
             knowledgeLoss
-          )}知识，科技效率下降！暴露值已清零，300秒内不会再次被打击。`,
+          )}知识，科技效率下降！暴露值已清零，60秒内不会再次被打击。`,
           type: 'strike'
         })
-        console.log('降维打击触发', coordinateExposure.value, exposureCooldown.value)
       } else if (civilizationLevel.value > darkForestLevel) {
         events.value.unshift({
           timestamp: Date.now(),
