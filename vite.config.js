@@ -10,7 +10,8 @@ import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator'
 export default defineConfig({
   define: {
     __APP_NAME__: JSON.stringify(pkg.name),
-    __APP_TITLE__: JSON.stringify(pkg.title)
+    __APP_TITLE__: JSON.stringify(pkg.title),
+    __APP_VER__: JSON.stringify(pkg.version)
   },
   base: './',
   build: {

@@ -38,14 +38,14 @@
       <div class="status-grid">
         <div class="status-item">
           <el-icon><Clock /></el-icon>
-          <span>时间: {{ formatTime(gameStore.gameTime) }}</span>
+          <span>时间: {{ gameStore.formatTime(gameStore.gameTime) }}</span>
         </div>
         <div class="status-item">
           <el-icon><Star /></el-icon>
           <span>文明等级: {{ gameStore.civilizationLevel }}</span>
         </div>
         <div class="status-item">
-          <el-icon><TrendCharts /></el-icon>
+          <el-icon><Compass /></el-icon>
           <span>存续度: {{ gameStore.civilizationSurvival.toFixed(2) }}</span>
         </div>
         <div
@@ -57,6 +57,68 @@
         </div>
       </div>
     </el-card>
+    <!-- 宇宙监控面板 -->
+    <el-card class="resource-panel" shadow="never">
+      <template #header>
+        <div class="card-header">
+          <span>宇宙监控</span>
+        </div>
+      </template>
+      <div class="universe-grid">
+        <div class="universe-item">
+          <h4>
+            坐标暴露值
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="当文明等级>=1并且暴露值超过上限会遭受到来自黑暗森林的降维打击(惩罚很严重)"
+              placement="top"
+            >
+              <el-icon><Warning /></el-icon>
+            </el-tooltip>
+          </h4>
+          <p>
+            {{
+              formatNumber(gameStore.resources.coordinateExposure) +
+              '/' +
+              formatNumber(gameStore.resources.coordinateExposureMax)
+            }}
+            <el-tag v-if="gameStore.exposureCooldown > 0" type="success" effect="dark" style="margin-left: 8px">
+              安全期：{{ gameStore.formatTime(gameStore.exposureCooldown) }}
+            </el-tag>
+          </p>
+          <el-progress
+            :percentage="
+              Math.min(
+                Math.max((gameStore.resources.coordinateExposure / gameStore.resources.coordinateExposureMax) * 100, 0),
+                100
+              )
+            "
+            :color="getExposureColor"
+            :show-text="false"
+          />
+        </div>
+        <div class="universe-item">
+          <h4>
+            三体偏差值
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="当三体偏差值达到无限时这个世界会在受到不可抗力因素后毁灭"
+              placement="top"
+            >
+              <el-icon><Warning /></el-icon>
+            </el-tooltip>
+          </h4>
+          <p>{{ gameStore.tripleStarDeviation.toFixed(3) }}/∞</p>
+          <el-progress
+            :percentage="Math.min(Math.max((gameStore.tripleStarDeviation / 0.5) * 100, 0), 100)"
+            :color="getDeviationColor"
+            :show-text="false"
+          />
+        </div>
+      </div>
+    </el-card>
     <!-- 资源面板 -->
     <el-card class="resource-panel" shadow="never">
       <template #header>
@@ -65,9 +127,9 @@
         </div>
       </template>
       <div class="resource-grid">
-        <div class="resource-item" v-for="(amount, resource) in gameStore.resources" :key="resource">
-          <el-icon><Coin /></el-icon>
-          <span>{{ getResourceName(resource) }}: {{ formatNumber(amount) }}</span>
+        <div class="resource-item" v-for="(amount, resource) in resourcesData" :key="resource">
+          <el-icon><Star /></el-icon>
+          <span>{{ getResourceName(resource) }}: {{ formatNumber(gameStore.resources[resource]) }}</span>
         </div>
       </div>
     </el-card>
@@ -77,7 +139,7 @@
       <el-card class="building-panel" shadow="never">
         <template #header>
           <div class="card-header">
-            <span>建筑系统</span>
+            <span>建筑系统({{ unlockedBuildings.length }}/{{ Object.entries(buildingsData).length }})</span>
           </div>
         </template>
         <div class="building-grid">
@@ -85,43 +147,82 @@
             v-for="[name, building] in unlockedBuildings"
             :key="name"
             class="building-item"
-            :class="{ 'can-afford': gameStore.canAfford(building.cost) }"
+            :class="{ 'can-afford': gameStore.canAfford(building.cost, building) }"
           >
             <div class="building-info">
-              <h4>{{ getBuildingName(name) }}</h4>
-              <p v-if="building.description" class="building-description">{{ building.description }}</p>
+              <h4>{{ buildingsData[name].name }}</h4>
+              <p v-if="buildingsData[name].description" class="building-description">
+                {{ buildingsData[name].description }}
+              </p>
             </div>
             <div class="building-upgrade">
               <p>建筑信息:</p>
               <div>数量: {{ formatNumber(building.count) }}</div>
               <div>等级: {{ formatNumber(building.level) }}</div>
             </div>
+            <div class="building-upgrade" v-if="building.count">
+              <p>产出信息:</p>
+              <div v-for="(item, index) in gameStore.canResource(name)" :key="index">
+                {{ getResourceName(item.res) }}：{{ item.val > 0 ? '+' : '' }} {{ formatNumber(item.val) }} / 天
+              </div>
+            </div>
             <div class="building-upgrade">
               <p>建造消耗:</p>
-              <div v-for="(cost, resource) in building.cost" :key="resource">
+              <div
+                v-for="(cost, resource) in gameStore.getDisplayCost(
+                  buildingsData[name].cost,
+                  building.count,
+                  building.level
+                )"
+                :key="resource"
+              >
                 {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
               </div>
             </div>
             <div class="building-upgrade" v-if="building.count">
               <p>升级消耗:</p>
-              <div v-for="(cost, resource) in building.upgradeCost" :key="resource">
-                {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
+              <div v-if="Object.keys(buildingsData[name].upgradeCost).length">
+                <div
+                  v-for="(cost, resource) in gameStore.getDisplayCost(
+                    buildingsData[name].upgradeCost,
+                    building.count,
+                    building.level,
+                    true
+                  )"
+                  :key="resource"
+                >
+                  {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
+                </div>
               </div>
+              <div v-else>无升级消耗</div>
             </div>
             <el-button
-              v-if="building.count"
-              type="success"
-              @click="gameStore.upgradeBuilding(name)"
-              :disabled="!gameStore.canAfford(building.upgradeCost)"
-            >
-              升级
-            </el-button>
-            <el-button
+              class="panelButton"
               type="primary"
               @click="gameStore.buildStructure(name)"
-              :disabled="!gameStore.canAfford(building.cost)"
+              :disabled="
+                !gameStore.updateDisplayCost(buildingsData[name].upgradeCost, building.count, building.level, false)
+              "
             >
-              建造
+              {{
+                !gameStore.updateDisplayCost(buildingsData[name].upgradeCost, building.count, building.level, false)
+                  ? '资源不足'
+                  : '建造建筑'
+              }}
+            </el-button>
+            <el-button
+              class="panelButton"
+              type="success"
+              @click="gameStore.upgradeBuilding(name)"
+              :disabled="
+                !gameStore.updateDisplayCost(buildingsData[name].upgradeCost, building.count, building.level, true)
+              "
+            >
+              {{
+                !gameStore.updateDisplayCost(buildingsData[name].upgradeCost, building.count, building.level, true)
+                  ? '资源不足'
+                  : '升级建筑'
+              }}
             </el-button>
           </div>
         </div>
@@ -130,7 +231,7 @@
       <el-card class="tech-panel" shadow="never">
         <template #header>
           <div class="card-header">
-            <span>科技树</span>
+            <span>科技树({{ visibleTechnologies.length }}/{{ Object.entries(technologiesData).length }})</span>
           </div>
         </template>
         <div class="tech-grid">
@@ -138,19 +239,20 @@
             v-for="[name, tech] in visibleTechnologies"
             :key="name"
             class="tech-item"
-            :class="{ unlocked: tech.unlocked, 'can-unlock': !tech.unlocked && canUnlockTech(name) }"
+            :class="{ unlocked: tech.unlocked, 'can-unlock': !tech.unlocked && gameStore.canUnlockTech(name) }"
           >
             <div class="tech-info">
-              <h4>{{ getTechName(name) }}</h4>
+              <h4>{{ technologiesData[name].group }}</h4>
               <p v-if="tech.unlocked">效率: {{ (tech.efficiency * 100).toFixed(1) }}%</p>
               <p v-else>状态: 未解锁</p>
-              <p v-if="tech.prerequisites && tech.prerequisites.length">
+              <p v-if="tech.prerequisites && tech.prerequisites.length && !tech.unlocked">
                 前置科技: {{ tech.prerequisites.map(getTechName).join('、') }}
               </p>
+              <p v-if="tech.unlocked">{{ technologiesData[name].effect }}</p>
             </div>
             <div class="tech-cost" v-if="!tech.unlocked">
               <p>解锁消耗:</p>
-              <div v-for="(cost, resource) in getTechCost(name)" :key="resource">
+              <div v-for="(cost, resource) in technologiesData[name].cost" :key="resource">
                 {{ getResourceName(resource) }}: {{ formatNumber(cost) }}
               </div>
             </div>
@@ -158,83 +260,19 @@
               v-if="!tech.unlocked"
               type="success"
               @click="gameStore.unlockTechnology(name)"
-              :disabled="!canUnlockTech(name) || !gameStore.canAfford(getTechCost(name))"
+              :disabled="!gameStore.canUnlockTech(name) || !gameStore.canAfford(technologiesData[name].cost)"
+              class="panelButton"
             >
-              解锁
+              {{
+                !gameStore.canUnlockTech(name) || !gameStore.canAfford(technologiesData[name].cost)
+                  ? '资源不足'
+                  : '解锁科技'
+              }}
             </el-button>
           </div>
         </div>
       </el-card>
     </div>
-    <!-- 宇宙监控面板 -->
-    <el-card class="universe-panel" shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>宇宙监控</span>
-        </div>
-      </template>
-      <div class="universe-grid">
-        <div class="universe-item">
-          <h4>坐标暴露值</h4>
-          <p>
-            {{ formatNumber(gameStore.coordinateExposure) }}
-            <el-tag v-if="gameStore.exposureCooldown > 0" type="success" effect="dark" style="margin-left: 8px">
-              安全期：{{ gameStore.exposureCooldown }}s
-            </el-tag>
-          </p>
-          <el-progress
-            :percentage="
-              Math.min(Math.max((gameStore.coordinateExposure / gameStore.concealmentAbility) * 100, 0), 100)
-            "
-            :color="getExposureColor"
-            :show-text="false"
-          />
-        </div>
-        <div class="universe-item">
-          <h4>三体偏差值</h4>
-          <p>{{ gameStore.tripleStarDeviation.toFixed(3) }}</p>
-          <el-progress
-            e
-            :percentage="Math.min(Math.max((gameStore.tripleStarDeviation / 0.5) * 100, 0), 100)"
-            :color="getDeviationColor"
-            :show-text="false"
-          />
-        </div>
-        <div class="universe-item">
-          <h4>文明基因库</h4>
-          <p>保存数量: {{ gameStore.resources.civilizationGenes }}</p>
-          <el-button
-            type="warning"
-            @click="gameStore.saveCivilizationGenes"
-            :disabled="gameStore.resources.energy < 1000 || gameStore.resources.knowledge < 100"
-          >
-            保存文明基因 (消耗: 1000能量 + 100知识)
-          </el-button>
-        </div>
-      </div>
-    </el-card>
-    <el-dialog
-      v-model="showBranchDialog"
-      :title="`选择${currentEraName}分支`"
-      width="400px"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      :show-close="false"
-    >
-      <div v-if="currentEraBranches">
-        <el-row :gutter="16">
-          <el-col :span="24" v-for="branch in currentEraBranches" :key="branch.key" style="margin-bottom: 12px">
-            <el-card shadow="hover">
-              <div style="display: flex; flex-direction: column; align-items: flex-start">
-                <div style="font-weight: bold; font-size: 18px">{{ branch.name }}</div>
-                <div style="margin: 8px 0 12px 0; color: #888">{{ branch.desc }}</div>
-                <el-button type="primary" size="small" @click="chooseBranch(branch.key)">选择该分支</el-button>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
-    </el-dialog>
     <!-- 帮助对话框 -->
     <el-dialog v-model="showHelp" title="熵减战争 - 游戏说明" width="80%" class="help-dialog">
       <div class="help-content">
@@ -319,14 +357,12 @@
 </template>
 
 <script setup>
-  import { useGameStore } from '../stores/gameStore'
-  import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+  import { useGameStore } from '@/stores/gameStore'
+  import { ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue'
   import {
     Clock,
     Star,
-    TrendCharts,
     Sunny,
-    Coin,
     VideoPlay,
     VideoPause,
     QuestionFilled,
@@ -334,43 +370,162 @@
     Download,
     Upload,
     Position,
-    ChatRound
+    ChatRound,
+    Compass,
+    Warning
   } from '@element-plus/icons-vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import 'element-plus/es/components/message-box/style/css'
   import { saveAs } from 'file-saver'
+  import buildingsData from '@/data/buildings'
+  import technologiesData from '@/data/technologies'
+  import resourcesData from '@/data/resources'
+  import WorkerTimer from '@/plugins/worker-timer.js?worker'
 
   const gameStore = useGameStore()
   const gameRunning = ref(true)
-  const gameInterval = ref(null)
   const showHelp = ref(false)
   const exposureCooldownTimer = ref(null)
+  const worker = new WorkerTimer()
 
-  // 游戏循环
-  const startGameLoop = () => {
-    gameInterval.value = setInterval(() => {
-      if (gameRunning.value) {
-        gameStore.updateGame()
+  // 格式化函数
+  const formatNumber = num => {
+    const absNum = Math.abs(num) // 取绝对值来做单位判断
+    if (absNum < 1000) return num.toFixed(3)
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    const units = []
+    for (let i = 0; i < 100; i++) {
+      let symbol = ''
+      let temp = i
+      if (temp < 26) {
+        symbol = alphabet[temp]
+      } else {
+        const first = Math.floor(temp / 26) - 1
+        const second = temp % 26
+        symbol = alphabet[first] + alphabet[second]
       }
-    }, 1000) // 每秒更新一次
+      const value = Math.pow(1000, i + 1)
+      units.unshift({ value, symbol })
+    }
+    for (let unit of units) {
+      if (absNum >= unit.value) {
+        const value = (num / unit.value).toFixed(2) // 保留符号
+        return `${value}${unit.symbol}`
+      }
+    }
+    return Math.floor(num).toString()
   }
 
-  // 停止游戏循环
-  const stopGameLoop = () => {
-    if (gameInterval.value) {
-      clearInterval(gameInterval.value)
-      gameInterval.value = null
+  // 名称映射
+  const getResourceName = resource => {
+    const names = {
+      knowledge: '知识',
+      energy: '能量',
+      matter: '物质',
+      entropy: '熵值',
+      darkMatter: '暗物质',
+      antiMatter: '反物质',
+      nanoMaterial: '纳米材料',
+      quantumBits: '量子比特',
+      bioOrder: '生物有序度',
+      coordinateExposure: '坐标暴露值',
+      coordinateExposureMax: '坐标暴露值上限',
+      entropyReductionRate: '熵减速率'
     }
+    return names[resource] || resource
+  }
+
+  const getTechName = tech => {
+    const names = {
+      atomicManipulation: '基础科技',
+      thermalControl: '热控制',
+      stellarEngineering: '恒星科技',
+      blackholePhysics: '黑洞科技',
+      energyConversion: '宇宙科技',
+      universalTheory: '宇宙科技',
+      quantumComputing: '高等科技',
+      spacetimeManipulation: '宇宙科技',
+      lowPotentialTrapTech: '分子冷却科技',
+      quantumDecoherenceTech: '分子冷却科技',
+      brownianCaptureTech: '分子冷却科技',
+      stealthAlgorithm: '隐匿科技',
+      darkMatterExtraction: '暗物质提取',
+      antiMatterSynthesis: '反物质合成',
+      nanoManufacturing: '纳米制造'
+    }
+    return names[tech] || tech
+  }
+
+  // 计算属性
+  const unlockedBuildings = computed(() =>
+    Object.entries(gameStore.buildings).filter(([name, building]) => {
+      // 已解锁的始终显示
+      if (building.unlocked) return true
+      // 当前阶段可解锁的也显示
+      if (building.entropyStage && building.entropyStage === gameStore.currentEntropyStage) return true
+      // 支持建筑始终显示
+      return ['quantumComputer', 'spacetimePortal'].includes(name)
+    })
+  )
+
+  const visibleTechnologies = computed(() => {
+    return Object.entries(gameStore.technologies).filter(([name, tech]) => {
+      // 已解锁的始终显示
+      if (tech.unlocked) return true
+      // 当前阶段可解锁的也显示
+      if (tech.entropyStage && tech.entropyStage === gameStore.currentEntropyStage) return true
+      // 支持科技始终显示
+      return ['quantumComputing', 'spacetimeManipulation'].includes(name)
+    })
+  })
+
+  const getExposureColor = computed(() => {
+    const { coordinateExposure, coordinateExposureMax } = gameStore.resources
+    const percentage = (coordinateExposure / coordinateExposureMax) * 100
+    if (percentage > 80) return '#f56c6c'
+    if (percentage > 60) return '#e6a23c'
+    return '#67c23a'
+  })
+
+  const getDeviationColor = computed(() => {
+    const percentage = (gameStore.tripleStarDeviation / 0.5) * 100
+    if (percentage > 80) return '#f56c6c'
+    if (percentage > 60) return '#e6a23c'
+    return '#67c23a'
+  })
+
+  const tickQueue = ref(0)
+  const processing = ref(false)
+
+  const scheduleNext = () => {
+    if (tickQueue.value <= 0) {
+      processing.value = false
+      return
+    }
+    processing.value = true
+    setTimeout(() => {
+      gameStore.updateGame()
+      tickQueue.value--
+      scheduleNext()
+    }, 1000)
+  }
+
+  // 游戏循环
+  const startGameLoop = () => worker.postMessage('start')
+
+  // 停止游戏循环
+  const stopGameLoop = () => worker.postMessage('pause')
+
+  worker.onmessage = () => {
+    tickQueue.value++
+    if (!processing.value) scheduleNext()
   }
 
   // 切换游戏状态
   const toggleGame = () => {
     gameRunning.value = !gameRunning.value
-    if (gameRunning.value) {
-      startGameLoop()
-    } else {
-      stopGameLoop()
-    }
+    if (gameRunning.value) startGameLoop()
+    else stopGameLoop()
   }
 
   // 导出存档
@@ -418,200 +573,6 @@
       .catch(() => {})
   }
 
-  // 格式化函数
-  const formatNumber = num => {
-    if (num < 1000) return Math.floor(num).toString()
-    // 26位字母单位系统
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const units = []
-    for (let i = 0; i < 100; i++) {
-      // 支持到100个单位
-      let symbol = ''
-      let temp = i
-      if (temp < 26) {
-        symbol = alphabet[temp]
-      } else {
-        const first = Math.floor(temp / 26) - 1
-        const second = temp % 26
-        symbol = alphabet[first] + alphabet[second]
-      }
-      const value = Math.pow(1000, i + 1)
-      units.unshift({ value, symbol })
-    }
-    for (let unit of units) {
-      if (num >= unit.value) {
-        const value = (num / unit.value).toFixed(2)
-        return `${value}${unit.symbol}`
-      }
-    }
-    return Math.floor(num).toString()
-  }
-
-  const formatTime = seconds => {
-    const days = Math.floor(seconds / 86400)
-    const hours = Math.floor((seconds % 86400) / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${days}天${hours}时${minutes}分${secs}秒`
-  }
-
-  // 名称映射
-  const getResourceName = resource => {
-    const names = {
-      knowledge: '知识',
-      energy: '能量',
-      matter: '物质',
-      entropy: '熵值',
-      darkMatter: '暗物质',
-      antiMatter: '反物质',
-      nanoMaterial: '纳米材料',
-      quantumBits: '量子比特',
-      civilizationGenes: '文明基因',
-      bioOrder: '生物有序度'
-    }
-    return names[resource] || resource
-  }
-
-  const getBuildingName = building => {
-    const names = {
-      atomicSorter: '原子排序器',
-      molecularCooler: '分子冷却器',
-      stellarExtinguisher: '恒星熄灭器',
-      blackholeDecompressor: '黑洞解压器',
-      energyMaterializer: '能量物质化器',
-      universalUnifier: '宇宙单一化器',
-      quantumComputer: '量子计算机',
-      spacetimePortal: '时空传送门',
-      lowPotentialTrap: '低势能陷阱',
-      quantumDecoherenceSuppressor: '量子退相干抑制器',
-      brownianCaptureNet: '布朗运动捕获网',
-      stealthGenerator: '隐匿发生器',
-      darkMatterCollector: '暗物质收集器',
-      aotoumRealityPerforator: '奥陶姆现实透孔仪',
-      crystalDefectRepairer: '晶体缺陷修仪',
-      bioEntropyStabilizer: '生物熵稳定舱',
-      orbitalOptimizer: '行星轨道优化器',
-      antiMatterSynthesizer: '反物质合成器',
-      nanoFactory: '纳米工厂'
-    }
-    return names[building] || building
-  }
-
-  const getTechName = tech => {
-    const names = {
-      atomicManipulation: '原子操控',
-      thermalControl: '热控制',
-      stellarEngineering: '恒星工程',
-      blackholePhysics: '黑洞物理',
-      energyConversion: '能量转换',
-      universalTheory: '宇宙理论',
-      quantumComputing: '量子计算',
-      spacetimeManipulation: '时空操控',
-      lowPotentialTrapTech: '低势能陷阱技术',
-      quantumDecoherenceTech: '量子退相干技术',
-      brownianCaptureTech: '布朗运动捕获技术',
-      stealthAlgorithm: '隐匿算法',
-      darkMatterExtraction: '暗物质提取',
-      aotoumRealityPerforatorTech: '现实透孔技术',
-      crystalDefectRepairTech: '晶体缺陷修复技术',
-      bioEntropyStabilizerTech: '生物熵稳定技术',
-      orbitalOptimizerTech: '轨道优化技术',
-      antiMatterSynthesis: '反物质合成',
-      nanoManufacturing: '纳米制造'
-    }
-    return names[tech] || tech
-  }
-
-  const getTechCost = techName => {
-    const costs = {
-      atomicManipulation: { energy: 10, matter: 5 },
-      thermalControl: { energy: 50, matter: 20, knowledge: 10 },
-      stellarEngineering: { energy: 200, matter: 100, knowledge: 50 },
-      blackholePhysics: { energy: 1000, matter: 500, knowledge: 200, darkMatter: 10 },
-      energyConversion: { energy: 5000, matter: 2000, knowledge: 1000, darkMatter: 100 },
-      universalTheory: { energy: 20000, matter: 10000, knowledge: 5000, darkMatter: 500, antiMatter: 100 },
-      quantumComputing: { energy: 100, matter: 50, knowledge: 20 },
-      spacetimeManipulation: { energy: 2000, matter: 1000, knowledge: 500, darkMatter: 50 },
-      lowPotentialTrapTech: { energy: 500, matter: 200, knowledge: 100 },
-      quantumDecoherenceTech: { energy: 1000, matter: 500, knowledge: 200 },
-      brownianCaptureTech: { energy: 2000, matter: 1000, knowledge: 500 },
-      stealthAlgorithm: { energy: 5000, matter: 2000, knowledge: 1000 },
-      darkMatterExtraction: { energy: 5000, matter: 2000, knowledge: 10000 },
-      antiMatterSynthesis: { knowledge: 20000, energy: 100000, darkMatter: 10000 },
-      nanoManufacturing: { knowledge: 5000, energy: 5000, matter: 2000 }
-    }
-    return costs[techName] || {}
-  }
-
-  // 判断科技是否可解锁
-  const canUnlockTech = name => {
-    const tech = gameStore.technologies[name]
-    if (tech.unlocked) return false
-    if (!tech.prerequisites || tech.prerequisites.length === 0) return true
-    return tech.prerequisites.every(prereq => gameStore.technologies[prereq].unlocked)
-  }
-
-  // 计算属性
-  const unlockedBuildings = computed(() =>
-    Object.entries(gameStore.buildings).filter(([name, building]) => {
-      // 已解锁的始终显示
-      if (building.unlocked) return true
-      // 当前阶段可解锁的也显示
-      if (building.entropyStage && building.entropyStage === gameStore.currentEntropyStage) return true
-      // 支持建筑始终显示
-      return ['quantumComputer', 'spacetimePortal'].includes(name)
-    })
-  )
-
-  const visibleTechnologies = computed(() => {
-    return Object.entries(gameStore.technologies).filter(([name, tech]) => {
-      // 已解锁的始终显示
-      if (tech.unlocked) return true
-      // 当前阶段可解锁的也显示
-      if (tech.entropyStage && tech.entropyStage === gameStore.currentEntropyStage) return true
-      // 支持科技始终显示
-      return ['quantumComputing', 'spacetimeManipulation'].includes(name)
-    })
-  })
-
-  const getExposureColor = computed(() => {
-    const percentage = (gameStore.coordinateExposure / gameStore.concealmentAbility) * 100
-    if (percentage > 80) return '#f56c6c'
-    if (percentage > 60) return '#e6a23c'
-    return '#67c23a'
-  })
-
-  const getDeviationColor = computed(() => {
-    const percentage = (gameStore.tripleStarDeviation / 0.5) * 100
-    if (percentage > 80) return '#f56c6c'
-    if (percentage > 60) return '#e6a23c'
-    return '#67c23a'
-  })
-
-  const showBranchDialog = ref(false)
-  const currentEra = computed(() => gameStore.currentEra)
-  const currentEraName = computed(() => {
-    const era = gameStore.eras.find(e => e.key === gameStore.currentEra)
-    return era ? era.name : ''
-  })
-  const currentEraBranches = computed(() => gameStore.eraBranches[gameStore.currentEra] || null)
-
-  watch(
-    () => gameStore.branchChoiceRequired,
-    val => {
-      if (val) showBranchDialog.value = true
-    },
-    { immediate: true }
-  )
-
-  const chooseBranch = branchKey => {
-    // 只允许选择一次
-    if (!gameStore.selectedBranch[gameStore.currentEra]) {
-      gameStore.selectedBranch[gameStore.currentEra] = branchKey
-      showBranchDialog.value = false
-    }
-  }
-
   // 组件挂载时启动游戏
   onMounted(() => {
     startGameLoop()
@@ -620,9 +581,29 @@
         gameStore.exposureCooldown--
       }
     }, 1000)
+    if (gameStore.tripleStarDeviation >= 100) {
+      ElMessageBox.confirm(
+        '这个误差被无限放大，最终导致文明无法预测未来、无法避免毁灭，你的文明已毁灭！',
+        '三体偏差值已被无限放大',
+        {
+          lockScroll: true,
+          showClose: false,
+          showCancelButton: false,
+          confirmButtonText: '重新开始',
+          closeOnPressEscape: false,
+          closeOnClickModal: false
+        }
+      )
+        .then(() => {
+          localStorage.removeItem(__APP_NAME__)
+          ElMessage.success('游戏数据已重置')
+          location.reload()
+        })
+        .catch(() => {})
+    }
   })
   // 组件卸载时清理
-  onUnmounted(() => {
+  onBeforeUnmount(() => {
     stopGameLoop()
     if (exposureCooldownTimer.value) {
       clearInterval(exposureCooldownTimer.value)
@@ -724,23 +705,106 @@
     gap: 15px;
   }
 
-  .building-item,
-  .tech-item {
-    padding: 15px;
+  .building-item {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
   }
 
-  .building-description {
-    color: #ccc;
-    font-style: italic;
-    font-size: 12px;
-    margin: 5px 0;
+  .building-info {
+    margin-bottom: 12px;
   }
 
-  .building-item.can-afford,
+  .building-info h4 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #4fc3f7;
+  }
+
+  .building-description {
+    margin: 4px 0 0;
+    font-size: 0.9em;
+    color: #bbb;
+    line-height: 1.4;
+  }
+
+  .building-upgrade {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #ccc;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .building-upgrade > div {
+    margin-bottom: 4px;
+  }
+
+  .building-actions {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .panelButton {
+    margin-top: 5px;
+    width: 100%;
+  }
+
+  .panelButton + .panelButton {
+    margin-left: 0px;
+  }
+
+  .tech-item {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .tech-info h4 {
+    margin: 0 0 4px;
+    font-size: 1.1em;
+    color: #4fc3f7;
+  }
+
+  .tech-info p {
+    margin: 2px 0;
+    font-size: 0.9em;
+  }
+
+  .tech-info .efficiency-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(64, 158, 255, 0.2);
+    border-radius: 8px;
+    color: #4fc3f7;
+    font-weight: bold;
+  }
+
+  .tech-prerequisites {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 4px;
+  }
+
+  .tech-cost {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #ccc;
+  }
+
+  .tech-actions {
+    margin-top: 12px;
+    text-align: right;
+  }
+
+  .can-afford,
   .tech-item.can-unlock {
     border-color: #67c23a;
     background: rgba(103, 194, 58, 0.1);
@@ -749,36 +813,6 @@
   .tech-item.unlocked {
     border-color: #409eff;
     background: rgba(64, 158, 255, 0.1);
-  }
-
-  .building-info,
-  .tech-info {
-    margin-bottom: 10px;
-  }
-
-  .building-info h4,
-  .tech-info h4 {
-    margin: 0 0 8px 0;
-    color: #409eff;
-  }
-
-  .building-cost,
-  .tech-cost {
-    margin-bottom: 10px;
-    font-size: 0.9em;
-    color: #a0a0a0;
-  }
-
-  .building-upgrade {
-    margin: 10px 0;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .building-upgrade p {
-    margin-bottom: 5px;
-    font-size: 0.9em;
-    color: #a0a0a0;
   }
 
   .universe-panel {

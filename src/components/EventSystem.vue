@@ -9,7 +9,7 @@
       <div v-if="gameStore.activeEvent" class="active-event">
         <h4>{{ gameStore.activeEvent.title }}</h4>
         <p>{{ gameStore.activeEvent.description }}</p>
-        <p>剩余时间: {{ gameStore.activeEvent.remaining }} 秒</p>
+        <p>剩余时间: {{ gameStore.formatTime(gameStore.activeEvent.remaining) }}</p>
       </div>
       <div v-else class="active-event">
         <p>当前无活跃事件</p>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-  import { useGameStore } from '../stores/gameStore'
+  import { useGameStore } from '@/stores/gameStore'
   const gameStore = useGameStore()
 
   const formatTime = timestamp => {

@@ -2,11 +2,8 @@
   <div id="app">
     <!-- 游戏标题 -->
     <div class="game-header">
-      <h1>熵减战争</h1>
+      <h1>熵减战争{{ version }}</h1>
       <p>对抗宇宙熵增的科幻放置游戏</p>
-      <div class="era-bar">
-        <el-tag type="success" size="large" disable-transitions>当前文明时代：{{ gameStore.currentEraName }}</el-tag>
-      </div>
     </div>
     <!-- 游戏主界面 -->
     <div class="game-container">
@@ -16,67 +13,19 @@
       </div>
       <!-- 右侧：事件系统 -->
       <div class="game-sidebar">
-        <EventSystem ref="eventSystem" />
+        <EventSystem />
         <!-- 熵减进程 -->
         <EntropyProgress />
       </div>
     </div>
-    <el-dialog
-      v-model="showTraitDialog"
-      title="选择文明特性"
-      width="400px"
-      :close-on-click-modal="false"
-      :show-close="false"
-    >
-      <div v-if="!gameStore.selectedTrait">
-        <el-radio-group v-model="traitChoice">
-          <el-radio v-for="trait in gameStore.traits" :key="trait.key" :value="trait.key">
-            <b>{{ trait.name }}</b>
-            ：{{ trait.desc }}
-          </el-radio>
-        </el-radio-group>
-        <div style="margin-top: 20px; text-align: right">
-          <el-button type="primary" @click="chooseTrait" :disabled="!traitChoice">确定</el-button>
-        </div>
-      </div>
-      <div v-else>
-        <p>
-          已选择特性：
-          <b>{{ getTraitName(gameStore.selectedTrait) }}</b>
-        </p>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-  import { ref, onMounted, onUnmounted } from 'vue'
-  import { useGameStore } from './stores/gameStore'
-  import GameInterface from './components/GameInterface.vue'
-  import EventSystem from './components/EventSystem.vue'
-  import EntropyProgress from './components/EntropyProgress.vue'
-
-  const gameStore = useGameStore()
-  const eventSystem = ref(null)
-  const showTraitDialog = ref(false)
-  const traitChoice = ref('')
-
-  const getTraitName = key => {
-    const found = gameStore.traits.find(t => t.key === key)
-    return found ? found.name : key
-  }
-
-  const chooseTrait = () => {
-    gameStore.selectedTrait = traitChoice.value
-    showTraitDialog.value = false
-  }
-
-  // 组件挂载时启动游戏
-  onMounted(() => {
-    if (!gameStore.selectedTrait) {
-      showTraitDialog.value = true
-    }
-  })
+  import GameInterface from '@/components/GameInterface.vue'
+  import EventSystem from '@/components/EventSystem.vue'
+  import EntropyProgress from '@/components/EntropyProgress.vue'
+  const version = __APP_VER__
 </script>
 
 <style scoped>
@@ -105,10 +54,6 @@
     margin: 10px 0 0 0;
     color: #a0a0a0;
     font-size: 1.1em;
-  }
-
-  .era-bar {
-    margin-top: 10px;
   }
 
   .game-container {
@@ -207,32 +152,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
 
-  .el-button {
-    background: rgba(64, 158, 255, 0.2) !important;
-    border: 1px solid rgba(64, 158, 255, 0.3) !important;
-    color: #409eff !important;
-  }
-
-  .el-button:hover {
-    background: rgba(64, 158, 255, 0.3) !important;
-    border-color: #409eff !important;
-  }
-
-  .el-button--primary {
-    background: rgba(64, 158, 255, 0.8) !important;
-    color: white !important;
-  }
-
-  .el-button--warning {
-    background: rgba(230, 162, 60, 0.8) !important;
-    color: white !important;
-  }
-
-  .el-button--success {
-    background: rgba(103, 194, 58, 0.8) !important;
-    color: white !important;
-  }
-
   .el-progress {
     background: rgba(255, 255, 255, 0.1) !important;
   }
@@ -264,12 +183,12 @@
     text-decoration: none;
   }
 
-  .status-controls .el-button+.el-button {
+  .status-controls .el-button + .el-button {
     margin-left: 0px;
     margin-right: 12px;
   }
 
   .status-controls .el-button:nth-child(2) {
-    margin-left: 12px
+    margin-left: 12px;
   }
 </style>

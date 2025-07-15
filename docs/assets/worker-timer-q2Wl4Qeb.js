@@ -1,0 +1,1 @@
+let e=!1,s=1e3;const t=()=>{e&&(self.postMessage("tick"),setTimeout(t,s))};self.onmessage=({data:a})=>{switch(a?.type||a){case"start":e=!0,t();break;case"pause":e=!1;break;case"setInterval":s=a.interval}};

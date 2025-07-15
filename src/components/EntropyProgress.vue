@@ -3,8 +3,8 @@
     <h3>熵减进程</h3>
     <!-- 当前阶段显示 -->
     <div class="current-stage">
-      <h4>当前阶段: {{ currentStageName }}</h4>
-      <p class="stage-description">{{ currentStageDescription }}</p>
+      <h4>当前阶段: {{ currentData.name }}</h4>
+      <p class="stage-description">{{ currentData.description }}</p>
     </div>
     <!-- 进度条 -->
     <div class="progress-container">
@@ -18,14 +18,14 @@
     <!-- 阶段效果 -->
     <div class="stage-effect">
       <strong>效果:</strong>
-      {{ currentStageEffect }}
+      {{ currentData.effect }}
     </div>
     <!-- 资源消耗 -->
     <div class="resource-cost">
       <strong>每次熵减消耗:</strong>
       <div class="cost-items">
         <span
-          v-for="(amount, resource) in currentStageCost"
+          v-for="(amount, resource) in currentData.cost"
           :key="resource"
           :class="{ insufficient: !canAffordResource(resource, amount) }"
         >
@@ -45,23 +45,16 @@
       </div>
     </div>
     <!-- 手动熵减按钮 -->
-    <button @click="performManualEntropyReduction(1)" :disabled="!canPerformEntropyReduction" class="entropy-button">
-      执行熵减 (×1)
-    </button>
-    <button
-      @click="performManualEntropyReduction(100)"
-      :disabled="!canPerformEntropyReductionBatch(100)"
+    <el-button
+      v-for="(item, index) in [1, 100, 1000]"
+      :key="index"
+      type="success"
+      @click="gameStore.performEntropyReduction(item)"
+      :disabled="!canPerformEntropyReductionBatch(item)"
       class="entropy-button"
     >
-      执行熵减 (×100)
-    </button>
-    <button
-      @click="performManualEntropyReduction(1000)"
-      :disabled="!canPerformEntropyReductionBatch(1000)"
-      class="entropy-button"
-    >
-      执行熵减 (×1000)
-    </button>
+      {{ canPerformEntropyReductionBatch(item) ? `执行熵减 (×${item})` : '资源不足' }}
+    </el-button>
     <!-- 所有阶段概览 -->
     <div class="all-stages">
       <h4>熵减阶段</h4>
@@ -73,22 +66,27 @@
             'stage-item',
             {
               current: key === currentEntropyStage,
-              completed: stage.progress >= stage.maxProgress,
+              completed: stage.progress >= entropyReductionData[key].maxProgress,
               locked: !stage.unlocked
             }
           ]"
         >
           <div class="stage-header">
-            <span class="stage-name">{{ stage.name }}</span>
+            <span class="stage-name">{{ entropyReductionData[key].name }}</span>
             <span class="stage-status">
               {{ getStageStatus(key) }}
             </span>
           </div>
           <div class="stage-progress">
             <div class="mini-progress">
-              <div class="mini-fill" :style="{ width: (stage.progress / stage.maxProgress) * 100 + '%' }"></div>
+              <div
+                class="mini-fill"
+                :style="{ width: (stage.progress / entropyReductionData[key].maxProgress) * 100 + '%' }"
+              ></div>
             </div>
-            <span class="mini-text">{{ formatNumber(stage.progress) }} / {{ formatNumber(stage.maxProgress) }}</span>
+            <span class="mini-text">
+              {{ formatNumber(stage.progress) }} / {{ formatNumber(entropyReductionData[key].maxProgress) }}
+            </span>
           </div>
         </div>
       </div>
@@ -99,21 +97,23 @@
 <script setup>
   import { computed } from 'vue'
   import { useGameStore } from '@/stores/gameStore'
+  import entropyReductionData from '@/data/entropyReductions'
 
   const gameStore = useGameStore()
 
-  // 计算属性
+  // 当前熵减阶段
   const currentEntropyStage = computed(() => gameStore.currentEntropyStage)
+  // 熵减进程数据
   const entropyReductionStages = computed(() => gameStore.entropyReductionStages)
+  // 资源
   const resources = computed(() => gameStore.resources)
-
+  // 当前熵减进程阶段数据
   const currentStage = computed(() => entropyReductionStages.value[currentEntropyStage.value])
-  const currentStageName = computed(() => currentStage.value?.name || '未知阶段')
-  const currentStageDescription = computed(() => currentStage.value?.description || '')
-  const currentStageEffect = computed(() => currentStage.value?.effect || '')
-  const currentStageCost = computed(() => currentStage.value?.cost || {})
+  // 本地熵减进程阶段数据
+  const currentData = computed(() => entropyReductionData[gameStore.currentEntropyStage])
+  // 当前熵减阶段进度
   const currentProgress = computed(() => currentStage.value?.progress || 0)
-  const maxProgress = computed(() => currentStage.value?.maxProgress || 1)
+  const maxProgress = computed(() => currentData.value?.maxProgress || 1)
   const progressPercentage = computed(() => (currentProgress.value / maxProgress.value) * 100)
 
   // 效率计算
@@ -134,7 +134,7 @@
   // 检查是否可以执行熵减
   const canPerformEntropyReduction = computed(() => {
     if (!currentStage.value || !currentStage.value.unlocked) return false
-    return gameStore.canAfford(currentStageCost.value)
+    return gameStore.canAfford(currentData.value.cost)
   })
 
   // 检查单个资源是否足够
@@ -144,11 +144,10 @@
 
   // 格式化数字
   const formatNumber = num => {
-    if (num < 1000) return Math.floor(num).toString()
+    if (num < 1000) return num.toFixed(1)
     // 26位字母单位系统
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     const units = []
-    // 生成单位：A=1e3, B=1e6, C=1e9, ..., Z=1e78, AA=1e81, AB=1e84...
     for (let i = 0; i < 100; i++) {
       // 支持到100个单位
       let symbol = ''
@@ -196,14 +195,9 @@
     return '已解锁'
   }
 
-  // 手动执行熵减
-  const performManualEntropyReduction = (times = 1) => {
-    gameStore.performEntropyReduction(times)
-  }
-
   // 检查是否可以批量熵减
   const canPerformEntropyReductionBatch = times => {
-    const cost = currentStageCost.value
+    const cost = currentData.value.cost
     return Object.entries(cost).every(([resource, amount]) => resources.value[resource] >= amount * times)
   }
 </script>
@@ -308,25 +302,12 @@
   .entropy-button {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(45deg, #4caf50, #8bc34a);
-    color: white;
     border: none;
     border-radius: 6px;
     font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     margin: 20px 0;
-  }
-
-  .entropy-button:hover:not(:disabled) {
-    background: linear-gradient(45deg, #45a049, #7cb342);
-    transform: translateY(-2px);
-  }
-
-  .entropy-button:disabled {
-    background: #666;
-    cursor: not-allowed;
-    opacity: 0.6;
   }
 
   .all-stages {
