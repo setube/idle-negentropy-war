@@ -1,68 +1,66 @@
 <p align="center">
-    <img src="./repository-images.png" width="400">
+  <img src="./repository-images.zh-CN.png" width="400">
 </p>
 <p align="center">
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
-    <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
+  <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
 </p>
 
-# Entropy Reduction War
+# 熵减战争 (Entropy Reduction War)
 
-[Click to view Chinese version instructions (Chinese document)](./README.zh-CN.md)
+> 对抗宇宙熵增的科幻放置/增量游戏
 
-> A sci-fi incremental/idle game about fighting the entropy of the universe.
+## 游戏简介
 
-## Game Introduction
+《熵减战争》是一款以“熵减”为核心主题的科幻放置类游戏。你将领导文明，从微观的原子排序、分子冷却，到宏观的恒星熄灭、黑洞解压，最终实现能量物质化和宇宙单一化，对抗宇宙的熵增法则，追求最低熵的终极秩序。
 
-**Entropy Reduction War** is a sci-fi idle/incremental game themed around “entropy reduction.” You will lead your civilization from microscopic atomic ordering and molecular cooling to macroscopic stellar extinction and black hole decompression, ultimately achieving energy materialization and universal unification. Fight against the law of increasing entropy and pursue the ultimate order of the universe.
+## 游戏特色
 
-## Features
+- **熵减进程**：手动推进，从原子排序到宇宙单一化，体验逐步逆转熵增的成就感。
+- **科技树与建筑**：解锁并升级与熵减阶段对应的科技和建筑，提升资源产出与熵减效率。
+- **资源管理**：能量、物质、暗物质、反物质、纳米材料等多种资源协同发展。
+- **事件与特性**：应对宇宙灾变、科技突破等事件，选择文明特性获得独特加成。
+- **黑暗森林法则**：坐标暴露过高会触发降维打击，需谨慎发展。坐标暴露值代表你的文明在宇宙中的可被发现程度，暴露值过高时，容易被高维文明发现并遭受资源损失或建筑摧毁。部分科技和建筑可以降低暴露值或提供防护。
 
-- **Entropy Reduction Progression**: Manually advance through stages from atomic ordering to universal unification, experiencing the sense of reversing entropy step by step.
-- **Tech Tree & Buildings**: Unlock and upgrade technologies and buildings corresponding to each entropy stage to boost resource production and entropy reduction efficiency.
-- **Resource Management**: Manage multiple resources such as energy, matter, dark matter, antimatter, nanomaterials, and more.
-- **Events & Traits**: Face cosmic disasters, technological breakthroughs, and choose civilization traits for unique bonuses.
-- **Dark Forest Law**: Excessive coordinate exposure will trigger dimensional strikes—develop with caution! Coordinate exposure represents how easily your civilization can be detected in the universe. High exposure increases the risk of being targeted by higher-dimensional civilizations, resulting in resource loss or building destruction. Certain technologies and buildings can help reduce exposure or provide protection.
+## 游戏玩法
 
-## How to Play
+1. **手动熵减**：点击“执行熵减”按钮，消耗资源推进当前熵减阶段。
+2. **建造建筑**：建造和升级当前阶段的建筑，提升资源产出和熵减效率。
+3. **解锁科技**：解锁与当前阶段相关的科技，获得新能力和更高效率。
+4. **管理威胁**：注意坐标暴露和三体偏差，防止文明被降维打击。
 
-1. **Manual Entropy Reduction**: Click the “Reduce Entropy” button to consume resources and advance the current entropy stage.
-2. **Build Structures**: Construct and upgrade buildings for the current stage to increase resource output and entropy reduction efficiency.
-3. **Unlock Technologies**: Unlock technologies related to the current stage for new abilities and higher efficiency.
-4. **Manage Threats**: Monitor coordinate exposure and three-body deviation to prevent civilization collapse.
+## 主要系统
 
-## Main Systems
+- **熵减阶段**：原子排序 → 分子冷却 → 恒星熄灭 → 黑洞解压 → 能量物质化 → 宇宙单一化
+- **资源类型**：能量、物质、暗物质、反物质、纳米材料、量子比特、文明基因等
+- **科技与建筑**：每个阶段有专属科技和建筑，支持熵减进程
 
-- **Entropy Stages**: Atomic Ordering → Molecular Cooling → Stellar Extinction → Black Hole Decompression → Energy Materialization → Universal Unification
-- **Resource Types**: Energy, Matter, Dark Matter, Antimatter, Nanomaterials, Quantum Bits, Civilization Genes, etc.
-- **Tech & Buildings**: Each stage has exclusive technologies and buildings to support entropy reduction.
+## 技术栈
 
-## Tech Stack
+- [Vue 3](https://vuejs.org/) + [Pinia](https://pinia.vuejs.org/) 状态管理
+- [Element Plus](https://element-plus.org/) UI 组件库
+- [Vite](https://vitejs.dev/) 前端构建工具
 
-- [Vue 3](https://vuejs.org/) + [Pinia](https://pinia.vuejs.org/) for state management
-- [Element Plus](https://element-plus.org/) UI component library
-- [Vite](https://vitejs.dev/) as the frontend build tool
-
-## Local Development & Run
+## 本地开发与运行
 
 ```bash
-# Install dependencies
+# 安装依赖
 npm install
 
-# Start the development server
+# 启动开发服务器
 npm run dev
 
-# Build for production
+# 构建生产版本
 npm run build
 ```
 
-## Contributing
+## 参与贡献
 
-Issues, PRs, and suggestions are welcome!  
-Repo: [https://github.com/setube/idle-negentropy-war](https://github.com/setube/idle-negentropy-war)
+欢迎提交 issue、PR 或建议！  
+开源地址：[https://github.com/setube/idle-negentropy-war](https://github.com/setube/idle-negentropy-war)
 
 ## License
 
 [MIT](LICENSE)
 
-> Inspired by the physics of entropy, The Three-Body Problem, Dark Forest theory, and other sci-fi concepts. Community contributions and fan works are welcome!
+> 本项目灵感来源于物理学熵减、三体、黑暗森林等科幻设定，欢迎交流与二创！
