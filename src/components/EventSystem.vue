@@ -1,47 +1,44 @@
 <template>
-  <div class="event-system">
-    <el-card class="event-log" shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>当前事件</span>
-        </div>
-      </template>
-      <div v-if="gameStore.activeEvent" class="active-event">
-        <h4>{{ gameStore.activeEvent.title }}</h4>
-        <p>{{ gameStore.activeEvent.description }}</p>
-        <p>剩余时间: {{ gameStore.formatTime(gameStore.activeEvent.remaining) }}</p>
+  <el-card class="event-log" shadow="never">
+    <template #header>
+      <div class="card-header">
+        <span>当前事件</span>
       </div>
-      <div v-else class="active-event">
-        <p>当前无活跃事件</p>
+    </template>
+    <div v-if="gameStore.activeEvent" class="active-event">
+      <h4>{{ gameStore.activeEvent.title }}</h4>
+      <p>{{ gameStore.activeEvent.description }}</p>
+      <p>剩余时间: {{ gameStore.formatTime(gameStore.activeEvent.remaining) }}</p>
+    </div>
+    <div v-else class="active-event">
+      <p>当前暂无活跃事件</p>
+    </div>
+  </el-card>
+  <el-card class="event-log" shadow="never">
+    <template #header>
+      <div class="card-header">
+        <span>历史事件</span>
       </div>
-    </el-card>
-    <el-card class="event-log" shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>历史事件</span>
-        </div>
-      </template>
-      <div class="event-list">
+    </template>
+    <el-scrollbar :max-height="300" class="event-list">
+      <template v-if="gameStore.events.length">
         <div v-for="(event, key) in gameStore.events" :key="key" class="event-item">
-          <div class="event-time">{{ formatTime(event.timestamp) }}</div>
           <div class="event-content">
             <h4>{{ event.title }}</h4>
             <p>{{ event.description }}</p>
           </div>
         </div>
+      </template>
+      <div v-else class="active-event">
+        <p>当前暂无历史事件</p>
       </div>
-    </el-card>
-  </div>
+    </el-scrollbar>
+  </el-card>
 </template>
 
 <script setup>
   import { useGameStore } from '@/stores/gameStore'
   const gameStore = useGameStore()
-
-  const formatTime = timestamp => {
-    const date = new Date(timestamp)
-    return date.toLocaleString()
-  }
 </script>
 
 <style scoped>
@@ -59,17 +56,11 @@
     border-radius: 6px;
     margin-bottom: 10px;
   }
-  .event-list {
-    max-height: 300px;
-    overflow-y: auto;
-  }
   .event-item {
     padding: 8px;
-    border-bottom: 1px solid #eee;
   }
-  .event-time {
-    font-size: 0.8em;
-    color: #888;
+  .event-item + .event-item {
+    border-top: 1px solid #eee;
   }
   .event-content h4 {
     margin: 0 0 4px 0;

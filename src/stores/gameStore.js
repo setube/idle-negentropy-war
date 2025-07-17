@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { decryptData, encryptData } from '@/plugins/crypto'
 import buildingsData from '@/data/buildings'
 import technologiesData from '@/data/technologies'
 import entropyReductionData from '@/data/entropyReductions'
 import resourcesData from '@/data/resources'
+import achievementsData from '@/data/achievements'
+import { useAchievementService } from '@/plugins/achievementService'
 
 export const useGameStore = defineStore(
   'game',
@@ -22,6 +24,8 @@ export const useGameStore = defineStore(
     const eventBonus = ref(1)
     // 暴露冷却
     const exposureCooldown = ref(0) // 单位：秒
+    // 成就相关逻辑
+    const achievementService = useAchievementService()
     // 熵减进程
     const entropyReductionStages = ref({})
     Object.keys(entropyReductionData).forEach(key => {
@@ -36,7 +40,7 @@ export const useGameStore = defineStore(
     // 资源系统
     const resources = ref({})
     Object.keys(resourcesData).forEach(key => {
-      resources.value[key] = resourcesData[key]
+      resources.value[key] = resourcesData[key].count
     })
     if (resources.value['[object Object]']) delete resources.value['[object Object]']
 
@@ -55,6 +59,18 @@ export const useGameStore = defineStore(
         count: 0,
         level: 0,
         unlocked: buildingsData[key].unlocked
+      }
+    })
+    // 成就系统状态
+    const achievements = ref({})
+    // 初始化成就
+    achievementsData.forEach(cfg => {
+      achievements.value[cfg.id] = {
+        level: 0,
+        unlocked: false,
+        currentTarget: cfg.baseTarget || 1,
+        completed: false, // 是否可领取
+        progress: 0 // 进度型成就
       }
     })
 
@@ -114,24 +130,6 @@ export const useGameStore = defineStore(
       }
     }
 
-    // 事件倒计时与结束
-    const updateEvent = () => {
-      if (activeEvent.value) {
-        activeEvent.value.remaining--
-        if (activeEvent.value.remaining <= 0) {
-          eventBonus.value = 1
-          activeEvent.value = null
-        }
-      }
-    }
-
-    // 计算属性
-    const civilizationSurvival = computed(() => {
-      const knowledgeDensity = Math.log10(resources.value.knowledge + 1)
-      const energyDensity = Math.log10(resources.value.energy + 1)
-      return knowledgeDensity * energyDensity
-    })
-
     // 在推进熵减阶段时同步推进文明时代
     const completeEntropyStage = stageKey => {
       const stage = entropyReductionStages.value[stageKey]
@@ -153,50 +151,52 @@ export const useGameStore = defineStore(
         currentEntropyStage.value = nextStageKey
         // 触发阶段完成事件
         addEvent({
-          timestamp: Date.now(),
           title: '熵减突破',
           description: `完成${stage.name}阶段，解锁${data[nextStageKey].name}`,
           type: 'entropy'
         })
       }
-
       // 解锁相关科技
-      unlockStageTechnologies(stageKey)
-
+      const stageTechMap = {
+        atomicOrdering: ['atomicManipulation'],
+        molecularCooling: [
+          'thermalControl',
+          'quantumComputing',
+          'lowPotentialTrapTech',
+          'quantumDecoherenceTech',
+          'brownianCaptureTech',
+          'nanoManufacturing'
+        ],
+        stellarExtinction: ['stellarEngineering'],
+        blackholeDecompression: ['blackholePhysics', 'spacetimeManipulation'],
+        energyMaterialization: ['energyConversion'],
+        universalUnification: ['universalTheory']
+      }
+      const techsToUnlock = stageTechMap[stageKey] || []
+      techsToUnlock.forEach(techKey => {
+        if (technologies.value[techKey]) {
+          technologies.value[techKey].unlocked = true
+        }
+      })
       // 恒星熄灭阶段自动解锁暗物质收集器和科技
       if (stageKey === 'stellarExtinction') {
         buildings.value.darkMatterCollector.unlocked = true
         technologies.value.darkMatterExtraction.unlocked = true
       }
-
       // 在推进到分子冷却阶段时自动解锁热控制科技
       if (stageKey === 'molecularCooling') {
         technologies.value.thermalControl.unlocked = true
       }
-
       // 黑洞解压阶段自动解锁反物质合成器和科技
       if (stageKey === 'blackholeDecompression') {
         buildings.value.antiMatterSynthesizer.unlocked = true
         technologies.value.antiMatterSynthesis.unlocked = true
       }
-
       // 分子冷却阶段推进时自动解锁纳米工厂和纳米制造科技
       if (stageKey === 'molecularCooling') {
         buildings.value.nanoFactory.unlocked = true
         technologies.value.nanoManufacturing.unlocked = true
       }
-    }
-
-    // 建筑-科技映射表
-    const buildingTechMap = {
-      atomicSorter: 'atomicManipulation',
-      molecularCooler: 'thermalControl',
-      stellarExtinguisher: 'stellarEngineering',
-      blackholeDecompressor: 'blackholePhysics',
-      energyMaterializer: 'energyConversion',
-      universalUnifier: 'universalTheory',
-      quantumComputer: 'quantumComputing',
-      spacetimePortal: 'spacetimeManipulation'
     }
 
     // 熵减进程
@@ -213,10 +213,12 @@ export const useGameStore = defineStore(
         currentStage.progress += reductionAmount
         if (currentStage.progress >= data.maxProgress) {
           completeEntropyStage(currentEntropyStage.value)
+          achievementService.checkAllAchievements()
           break // 阶段完成后停止批量
         }
         resources.value.entropyReductionRate += reductionAmount
       }
+      achievementService.checkAllAchievements()
     }
 
     const getEntropyReductionBonus = () => {
@@ -250,37 +252,6 @@ export const useGameStore = defineStore(
       return techKey ? technologies.value[techKey] : null
     }
 
-    const unlockStageTechnologies = stageKey => {
-      const stageTechMap = {
-        atomicOrdering: ['atomicManipulation'],
-        molecularCooling: [
-          'thermalControl',
-          'quantumComputing',
-          'lowPotentialTrapTech',
-          'quantumDecoherenceTech',
-          'brownianCaptureTech',
-          'nanoManufacturing'
-        ],
-        stellarExtinction: ['stellarEngineering'],
-        blackholeDecompression: ['blackholePhysics', 'spacetimeManipulation'],
-        energyMaterialization: ['energyConversion'],
-        universalUnification: ['universalTheory']
-      }
-
-      const techsToUnlock = stageTechMap[stageKey] || []
-      techsToUnlock.forEach(techKey => {
-        if (technologies.value[techKey]) {
-          technologies.value[techKey].unlocked = true
-        }
-      })
-    }
-
-    const unlockEntropyStage = stageKey => {
-      if (entropyReductionStages.value[stageKey]) {
-        entropyReductionStages.value[stageKey].unlocked = true
-      }
-    }
-
     // 判断资源是否足够
     const canAfford = (baseCost, factor = 1) => {
       if (!baseCost || typeof baseCost !== 'object') return false
@@ -290,7 +261,7 @@ export const useGameStore = defineStore(
       })
     }
 
-    // 根据原始成本 + 动态系数，返回实际成本表（含小数）
+    // 根据原始成本 + 动态系数，返回实际成本表
     const calcDynamicCost = (baseCost, factor = 1) =>
       Object.fromEntries(Object.entries(baseCost).map(([res, amt]) => [res, amt * factor]))
 
@@ -302,6 +273,17 @@ export const useGameStore = defineStore(
       if (info.count) {
         // 获取科技加成等
         let techEff = 1
+        // 建筑-科技映射表
+        const buildingTechMap = {
+          atomicSorter: 'atomicManipulation',
+          molecularCooler: 'thermalControl',
+          stellarExtinguisher: 'stellarEngineering',
+          blackholeDecompressor: 'blackholePhysics',
+          energyMaterializer: 'energyConversion',
+          universalUnifier: 'universalTheory',
+          quantumComputer: 'quantumComputing',
+          spacetimePortal: 'spacetimeManipulation'
+        }
         const techKey = buildingTechMap[item]
         if (techKey && technologies.value[techKey]) {
           techEff = technologies.value[techKey].efficiency
@@ -339,7 +321,35 @@ export const useGameStore = defineStore(
           resources.value[resource] -= amount
         })
         // 解锁科技
-        unlockBuildingByTech(key)
+        const techToBuilding = {
+          fire: 'campfire',
+          agriculture: 'farm',
+          metallurgy: 'mine',
+          mining: 'mine',
+          electricity: 'datacenter',
+          nuclear: 'reactor',
+          quantum: 'quantumComputer',
+          spacetime: 'spaceport',
+          vacuum: 'dysonSphere',
+          eco: 'ecoPark',
+          gene: 'geneCenter',
+          deepSpace: 'probe',
+          ai: 'aiCenter',
+          trade: 'tradeStation',
+          blackhole: 'blackholePlant',
+          lowPotentialTrapTech: 'lowPotentialTrap',
+          quantumDecoherenceTech: 'quantumDecoherenceSuppressor',
+          brownianCaptureTech: 'brownianCaptureNet',
+          stealthAlgorithm: 'stealthGenerator',
+          darkMatterExtraction: 'darkMatterCollector',
+          antiMatterSynthesis: 'antiMatterSynthesizer',
+          nanoManufacturing: 'nanoFactory'
+        }
+        const buildingName = techToBuilding[key]
+        if (buildingName && buildings.value[buildingName]) {
+          buildings.value[buildingName].unlocked = true
+        }
+        achievementService.checkAllAchievements()
       }
     }
 
@@ -348,8 +358,8 @@ export const useGameStore = defineStore(
       const building = buildings.value[key]
       const data = buildingsData[key]
       if (!building) return
-      const cost = getDisplayCost(data.upgradeCost, building.count, building.level, false)
-      if (!updateDisplayCost(data.upgradeCost, building.count, building.level, false)) return
+      const cost = getDisplayCost(data.cost, building.count, building.level, false)
+      if (!updateDisplayCost(data.cost, building.count, building.level, false)) return
       // 解锁校验
       const ok =
         building.unlocked ||
@@ -359,6 +369,7 @@ export const useGameStore = defineStore(
       // 扣费 & 建造
       Object.entries(cost).forEach(([res, amt]) => (resources.value[res] -= amt))
       building.count++
+      achievementService.checkAllAchievements()
     }
 
     // 建筑升级
@@ -371,6 +382,7 @@ export const useGameStore = defineStore(
       // 扣费 & 升级
       Object.entries(cost).forEach(([res, amt]) => (resources.value[res] -= amt))
       building.level++
+      achievementService.checkAllAchievements()
     }
 
     // 返回“建造下一座”或“升级下一级”的实际成本
@@ -417,11 +429,21 @@ export const useGameStore = defineStore(
       checkDarkForestStrike()
       // 更新文明等级
       updateCivilizationLevel()
-      // 事件触发和倒计时
+      // 事件触发
       triggerRandomEvent()
-      updateEvent()
+      // 事件倒计时与结束
+      if (activeEvent.value) {
+        activeEvent.value.remaining--
+        if (activeEvent.value.remaining <= 0) {
+          eventBonus.value = 1
+          activeEvent.value = null
+        }
+      }
+      // 检查成就达成
+      achievementService.checkAllAchievements()
     }
 
+    // 发送历史事件通知
     const addEvent = event => {
       events.value.unshift(event)
       if (events.value.length > 20) {
@@ -439,7 +461,6 @@ export const useGameStore = defineStore(
           if (tech.unlocked) tech.efficiency *= 1.05
         })
         addEvent({
-          timestamp: Date.now(),
           title: '文明进化',
           description: '文明等级提升，科技效率提升！',
           type: 'reward'
@@ -451,7 +472,6 @@ export const useGameStore = defineStore(
           if (tech.unlocked) tech.efficiency *= 0.9
         })
         addEvent({
-          timestamp: Date.now(),
           title: '文明退化',
           description: '文明等级下降，科技效率降低！',
           type: 'punish'
@@ -459,50 +479,13 @@ export const useGameStore = defineStore(
       }
     }
 
-    // 解锁新建筑逻辑扩展
-    const unlockBuildingByTech = techName => {
-      const techToBuilding = {
-        fire: 'campfire',
-        agriculture: 'farm',
-        metallurgy: 'mine',
-        mining: 'mine',
-        electricity: 'datacenter',
-        nuclear: 'reactor',
-        quantum: 'quantumComputer',
-        spacetime: 'spaceport',
-        vacuum: 'dysonSphere',
-        eco: 'ecoPark',
-        gene: 'geneCenter',
-        deepSpace: 'probe',
-        ai: 'aiCenter',
-        trade: 'tradeStation',
-        blackhole: 'blackholePlant',
-        lowPotentialTrapTech: 'lowPotentialTrap',
-        quantumDecoherenceTech: 'quantumDecoherenceSuppressor',
-        brownianCaptureTech: 'brownianCaptureNet',
-        stealthAlgorithm: 'stealthGenerator',
-        darkMatterExtraction: 'darkMatterCollector',
-        antiMatterSynthesis: 'antiMatterSynthesizer',
-        nanoManufacturing: 'nanoFactory'
-      }
-      const buildingName = techToBuilding[techName]
-      if (buildingName && buildings.value[buildingName]) {
-        buildings.value[buildingName].unlocked = true
-      }
-    }
-
     // 降维打击判定逻辑前，增加冷却判断
     const checkDarkForestStrike = () => {
-      const { coordinateExposure, coordinateExposureMax, knowledge } = resources.value
+      const { coordinateExposure, coordinateExposureMax } = resources.value
       // 冷却期间或者阈值小于100或者文明等级小于1不触发打击
-      if (exposureCooldown.value > 0 || coordinateExposure < coordinateExposureMax || civilizationLevel.value < 1)
+      if (exposureCooldown.value > 0 || coordinateExposure < coordinateExposureMax || civilizationLevel.value < 3)
         return
-      const darkForestLevel = 10
-      let strikeChance = 1
-      if (civilizationLevel.value > darkForestLevel) {
-        strikeChance = 0.1 // 只剩10%概率
-      }
-      if (Math.random() < strikeChance) {
+      if (Math.random() < 1 && civilizationLevel.value < 10) {
         // 惩罚递增
         Object.values(technologies.value).forEach(tech => {
           if (tech.unlocked) {
@@ -513,7 +496,7 @@ export const useGameStore = defineStore(
         if (coordinateExposure !== undefined) {
           resources.value.coordinateExposure = 0
         }
-        // 60秒冷却
+        // 冷却
         exposureCooldown.value = 60
         // 所有建筑的等级和数量减半
         Object.values(buildings.value).forEach(b => {
@@ -525,14 +508,12 @@ export const useGameStore = defineStore(
           }
         })
         events.value.unshift({
-          timestamp: Date.now(),
           title: '降维打击',
           description: `由于坐标暴露过高，文明遭受降维打击，科技效率下降！所有建筑等级和数量损失过半！如果建筑等级或数量过低建筑会被移除！暴露值已清零，60天内不会再次被打击。`,
           type: 'strike'
         })
-      } else if (civilizationLevel.value > darkForestLevel) {
+      } else if (civilizationLevel.value > 10) {
         events.value.unshift({
-          timestamp: Date.now(),
           title: '黑暗森林突破',
           description: '你的文明已超越黑暗森林，降维打击对你无效！',
           type: 'strike'
@@ -548,8 +529,35 @@ export const useGameStore = defineStore(
       return `${years}年${months}月${days}天`
     }
 
+    // 格式化函数
+    const formatNumber = num => {
+      const absNum = Math.abs(num) // 取绝对值来做单位判断
+      if (absNum < 1000) return num.toFixed(3)
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      const units = []
+      for (let i = 0; i < 100; i++) {
+        let symbol = ''
+        let temp = i
+        if (temp < 26) {
+          symbol = alphabet[temp]
+        } else {
+          const first = Math.floor(temp / 26) - 1
+          const second = temp % 26
+          symbol = alphabet[first] + alphabet[second]
+        }
+        const value = Math.pow(1000, i + 1)
+        units.unshift({ value, symbol })
+      }
+      for (let unit of units) {
+        if (absNum >= unit.value) {
+          const value = (num / unit.value).toFixed(2) // 保留符号
+          return `${value}${unit.symbol}`
+        }
+      }
+      return Math.floor(num).toString()
+    }
+
     return {
-      // 状态
       gameTime,
       civilizationLevel,
       resources,
@@ -561,32 +569,26 @@ export const useGameStore = defineStore(
       events,
       activeEvent,
       eventBonus,
-      // 熵减系统
       entropyReductionStages,
       currentEntropyStage,
-      // 计算属性
-      civilizationSurvival,
       canAfford,
-      // 方法
       updateGame,
       buildStructure,
       unlockTechnology,
       upgradeBuilding,
       canUnlockTech,
-      // 熵减方法
       performEntropyReduction,
       getEntropyReductionBonus,
       getCurrentStageTech,
       completeEntropyStage,
-      unlockEntropyStage,
-      // 暴露冷却
       exposureCooldown,
       checkDarkForestStrike,
-      buildingTechMap,
       canResource,
       getDisplayCost,
       updateDisplayCost,
-      formatTime
+      formatTime,
+      achievements,
+      formatNumber
     }
   },
   {

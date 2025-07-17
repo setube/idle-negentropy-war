@@ -1,6 +1,10 @@
 <template>
-  <div class="entropy-progress">
-    <h3>熵减进程</h3>
+  <el-card shadow="never">
+    <template #header>
+      <div class="card-header">
+        <span>熵减进程</span>
+      </div>
+    </template>
     <!-- 当前阶段显示 -->
     <div class="current-stage">
       <h4>当前阶段: {{ currentData.name }}</h4>
@@ -12,7 +16,9 @@
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
       <div class="progress-text">
-        {{ formatNumber(currentProgress) }} / {{ formatNumber(maxProgress) }} ({{ progressPercentage.toFixed(1) }}%)
+        {{ gameStore.formatNumber(currentProgress) }} / {{ gameStore.formatNumber(maxProgress) }} ({{
+          progressPercentage.toFixed(1)
+        }}%)
       </div>
     </div>
     <!-- 阶段效果 -->
@@ -29,19 +35,19 @@
           :key="resource"
           :class="{ insufficient: !canAffordResource(resource, amount) }"
         >
-          {{ formatResource(resource) }}: {{ formatNumber(amount) }}
+          {{ resourcesData[resource].name }}: {{ gameStore.formatNumber(amount) }}
         </span>
       </div>
     </div>
     <!-- 熵减效率 -->
     <div class="efficiency-info">
       <strong>当前效率:</strong>
-      {{ formatNumber(currentEfficiency) }}x
+      {{ gameStore.formatNumber(currentEfficiency) }}x
       <div class="efficiency-breakdown">
-        <div>基础效率: {{ formatNumber(currentStage.efficiency) }}x</div>
-        <div v-if="quantumBonus > 0">量子计算加成: +{{ formatNumber(quantumBonus) }}x</div>
-        <div v-if="spacetimeBonus > 0">时空操控加成: +{{ formatNumber(spacetimeBonus) }}x</div>
-        <div v-if="techBonus > 1">科技效率: {{ formatNumber(techBonus) }}x</div>
+        <div>基础效率: {{ gameStore.formatNumber(currentStage.efficiency) }}x</div>
+        <div v-if="quantumBonus > 0">量子计算加成: +{{ gameStore.formatNumber(quantumBonus) }}x</div>
+        <div v-if="spacetimeBonus > 0">时空操控加成: +{{ gameStore.formatNumber(spacetimeBonus) }}x</div>
+        <div v-if="techBonus > 1">科技效率: {{ gameStore.formatNumber(techBonus) }}x</div>
       </div>
     </div>
     <!-- 手动熵减按钮 -->
@@ -85,18 +91,20 @@
               ></div>
             </div>
             <span class="mini-text">
-              {{ formatNumber(stage.progress) }} / {{ formatNumber(entropyReductionData[key].maxProgress) }}
+              {{ gameStore.formatNumber(stage.progress) }} /
+              {{ gameStore.formatNumber(entropyReductionData[key].maxProgress) }}
             </span>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </el-card>
 </template>
 
 <script setup>
   import { computed } from 'vue'
   import { useGameStore } from '@/stores/gameStore'
+  import resourcesData from '@/data/resources'
   import entropyReductionData from '@/data/entropyReductions'
 
   const gameStore = useGameStore()
@@ -140,49 +148,6 @@
   // 检查单个资源是否足够
   const canAffordResource = (resource, amount) => {
     return resources.value[resource] >= amount
-  }
-
-  // 格式化数字
-  const formatNumber = num => {
-    if (num < 1000) return num.toFixed(1)
-    // 26位字母单位系统
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const units = []
-    for (let i = 0; i < 100; i++) {
-      // 支持到100个单位
-      let symbol = ''
-      let temp = i
-      if (temp < 26) {
-        symbol = alphabet[temp]
-      } else {
-        // 双字母单位：AA, AB, AC...
-        const first = Math.floor(temp / 26) - 1
-        const second = temp % 26
-        symbol = alphabet[first] + alphabet[second]
-      }
-      const value = Math.pow(1000, i + 1)
-      units.unshift({ value, symbol })
-    }
-    for (let unit of units) {
-      if (num >= unit.value) {
-        const value = (num / unit.value).toFixed(2)
-        return `${value}${unit.symbol}`
-      }
-    }
-    return Math.floor(num).toString()
-  }
-
-  // 格式化资源名称
-  const formatResource = resource => {
-    const resourceNames = {
-      energy: '能量',
-      matter: '物质',
-      darkMatter: '暗物质',
-      antiMatter: '反物质',
-      nanoMaterial: '纳米材料',
-      quantumBits: '量子比特'
-    }
-    return resourceNames[resource] || resource
   }
 
   // 获取阶段状态

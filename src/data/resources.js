@@ -1,14 +1,46 @@
-// 资源
 export default {
-  knowledge: 0, // 知识
-  energy: 100, // 能量
-  matter: 100, // 物质
-  darkMatter: 0, // 暗物质
-  antiMatter: 0, // 反物质
-  nanoMaterial: 0, // 纳米材料
-  quantumBits: 0, // 量子比特
-  bioOrder: 0, // 生物有序度
-  coordinateExposure: 0, // 坐标暴露值
-  coordinateExposureMax: 100, // 坐标暴露值上限
-  entropyReductionRate: 0 // 熵减速率
+  knowledge: {
+    name: '知识',
+    count: 0
+  },
+  energy: {
+    name: '能量',
+    count: 100
+  },
+  matter: {
+    name: '物质',
+    count: 100
+  },
+  darkMatter: {
+    name: '暗物质',
+    count: 0
+  },
+  antiMatter: {
+    name: '反物质',
+    count: 0
+  },
+  nanoMaterial: {
+    name: '纳米材料',
+    count: 0
+  },
+  quantumBits: {
+    name: '量子比特',
+    count: 0
+  },
+  bioOrder: {
+    name: '生物有序度',
+    count: 0
+  },
+  coordinateExposure: {
+    name: '坐标暴露值',
+    count: 0
+  },
+  coordinateExposureMax: {
+    name: '坐标暴露值上限',
+    count: 100
+  },
+  entropyReductionRate: {
+    name: '熵减速率',
+    count: 0
+  }
 }

@@ -1,8 +1,9 @@
 {
   "name": "idle-negentropy-war",
   "title": "熵减战争",
+  "desc": "对抗宇宙熵增的科幻放置游戏",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite --port 25710",
