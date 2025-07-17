@@ -10,8 +10,14 @@
       <div
         v-for="[name, building] in unlockedBuildings"
         :key="name"
-        class="building-item"
-        :class="{ 'can-afford': gameStore.canAfford(building.cost, building) }"
+        :class="[
+          'building-item',
+          {
+            'can-afford':
+              gameStore.updateDisplayCost(buildingsData[name].cost, building.count, building.level, false) ||
+              gameStore.updateDisplayCost(buildingsData[name].upgradeCost, building.count, building.level, true)
+          }
+        ]"
       >
         <div class="building-info">
           <h4>{{ buildingsData[name].name }}</h4>
@@ -180,6 +186,11 @@
 
   .panelButton + .panelButton {
     margin-left: 0px;
+  }
+
+  .can-afford {
+    border-color: #67c23a;
+    background: rgba(103, 194, 58, 0.1);
   }
 
   @media (max-width: 768px) {

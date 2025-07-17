@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-  import { ref, onBeforeUnmount, computed, onMounted, onUnmounted } from 'vue'
+  import { computed } from 'vue'
   import { useGameStore } from '@/stores/gameStore'
   import resourcesData from '@/data/resources'
   import technologiesData from '@/data/technologies'
@@ -170,7 +170,17 @@
     margin-top: 12px;
     text-align: right;
   }
-  
+
+  .tech-item.can-unlock {
+    border-color: #67c23a;
+    background: rgba(103, 194, 58, 0.1);
+  }
+
+  .tech-item.unlocked {
+    border-color: #409eff;
+    background: rgba(64, 158, 255, 0.1);
+  }
+
   .panelButton {
     margin-top: 5px;
     width: 100%;
