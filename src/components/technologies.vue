@@ -15,12 +15,14 @@
       >
         <div class="tech-info">
           <h4>{{ technologiesData[name].group }}</h4>
+        </div>
+        <div class="tech-cost">
+          <p>{{ technologiesData[name].effect }}</p>
           <p v-if="tech.unlocked">效率: {{ (tech.efficiency * 100).toFixed(1) }}%</p>
           <p v-else>状态: 未解锁</p>
           <p v-if="tech.prerequisites && tech.prerequisites.length && !tech.unlocked">
             前置科技: {{ tech.prerequisites.map(getTechName).join('、') }}
           </p>
-          <p v-if="tech.unlocked">{{ technologiesData[name].effect }}</p>
         </div>
         <div class="tech-cost" v-if="!tech.unlocked">
           <p>解锁消耗:</p>
@@ -54,9 +56,17 @@
 
   const gameStore = useGameStore()
 
+  // 已解锁的阶段列表
+  const unlockedStages = computed(() => {
+    const stageOrder = gameStore.stageOrder
+    const currentIdx = stageOrder.indexOf(gameStore.currentEntropyStage)
+    return stageOrder.slice(0, currentIdx + 1) // 包含当前阶段及之前所有阶段
+  })
+
+  // 可见科技：对应阶段已解锁 或 该科技本身已解锁
   const visibleTechnologies = computed(() => {
     return Object.entries(gameStore.technologies).filter(
-      ([name, tech]) => tech.unlocked || technologiesData[name].entropyStage === gameStore.currentEntropyStage
+      ([name, tech]) => tech.unlocked || unlockedStages.value.includes(technologiesData[name].entropyStage)
     )
   })
 

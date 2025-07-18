@@ -97,19 +97,34 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue'
+  import { computed, onMounted } from 'vue'
   import { useGameStore } from '@/stores/gameStore'
   import buildingsData from '@/data/buildings'
   import resourcesData from '@/data/resources'
 
   const gameStore = useGameStore()
 
+  // 自动解锁到当前熵减阶段为止的所有建筑
+  const unlockBuilding = () => {
+    const stageOrder = gameStore.stageOrder
+    const idx = stageOrder.indexOf(gameStore.currentEntropyStage)
+    if (idx === -1) return
+    for (let i = 0; i <= idx; i++) {
+      Object.keys(buildingsData).forEach(key => {
+        if (buildingsData[key].entropyStage === stageOrder[i] && !gameStore.buildings[key].unlocked) {
+          gameStore.buildings[key].unlocked = true
+        }
+      })
+    }
+  }
+
   // 计算属性
   const unlockedBuildings = computed(() =>
-    Object.entries(gameStore.buildings).filter(
-      ([name, building]) => building.unlocked || buildingsData[name].entropyStage === gameStore.currentEntropyStage
-    )
+    Object.entries(gameStore.buildings).filter(([name, building]) => building.unlocked)
   )
+  
+
+  onMounted(unlockBuilding)
 </script>
 
 <style scoped>

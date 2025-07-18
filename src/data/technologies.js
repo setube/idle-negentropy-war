@@ -58,14 +58,14 @@ export default {
     effect: '解锁宇宙单一化能力',
     entropyStage: 'universalUnification'
   },
-  // 支持科技
   quantumComputing: {
     unlocked: false,
     efficiency: 1,
     cost: { energy: 100, matter: 50, knowledge: 20 },
     prerequisites: ['thermalControl'],
     group: '高等科技',
-    effect: '提升熵减计算效率'
+    effect: '提升熵减计算效率',
+    entropyStage: 'molecularCooling'
   },
   spacetimeManipulation: {
     unlocked: false,
@@ -73,7 +73,8 @@ export default {
     cost: { energy: 2000, matter: 1000, knowledge: 500, darkMatter: 50 },
     prerequisites: ['stellarEngineering'],
     group: '宇宙科技',
-    effect: '提升时空操控能力'
+    effect: '提升时空操控能力',
+    entropyStage: 'universalUnification'
   },
   lowPotentialTrapTech: {
     unlocked: false,

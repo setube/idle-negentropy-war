@@ -69,8 +69,8 @@ export default {
     count: 0,
     level: 1,
     outputs: { coordinateExposure: 0.5, quantumBits: 0.01 },
-    cost: { matter: 500, energy: 250, quantumBits: 2.5, knowledge: 2.5 },
-    upgradeCost: { matter: 1000, energy: 500, quantumBits: 5, knowledge: 5 },
+    cost: { matter: 500, energy: 250, quantumBits: 5, knowledge: 5 },
+    upgradeCost: { matter: 1000, energy: 500, quantumBits: 10, knowledge: 10 },
     unlocked: false,
     entropyStage: 'molecularCooling'
   },
@@ -79,8 +79,8 @@ export default {
     count: 0,
     level: 1,
     outputs: { coordinateExposure: 1, darkMatter: 0.01 },
-    cost: { matter: 5000, energy: 2500, quantumBits: 5, darkMatter: 5, knowledge: 2.5 },
-    upgradeCost: { matter: 10000, energy: 5000, quantumBits: 10, darkMatter: 10, knowledge: 5 },
+    cost: { matter: 5000, energy: 2500, quantumBits: 5, darkMatter: 5, knowledge: 5 },
+    upgradeCost: { matter: 10000, energy: 5000, quantumBits: 10, darkMatter: 10, knowledge: 10 },
     unlocked: false,
     entropyStage: 'blackholeDecompression'
   },
@@ -148,7 +148,7 @@ export default {
     name: '奥陶姆现实透孔仪',
     count: 0,
     level: 1,
-    outputs: { coordinateExposure: 1 }, // 每tick减少熵
+    outputs: { coordinateExposure: 1 },
     cost: { energy: 10000, knowledge: 200, matter: 5000 },
     upgradeCost: { energy: 20000, knowledge: 400, matter: 10000 },
     unlocked: false,

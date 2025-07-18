@@ -161,67 +161,22 @@ export const useGameStore = defineStore(
       }
     }
 
-    // 在推进熵减阶段时同步推进文明时代
+    // 推进熵减阶段
     const completeEntropyStage = stageKey => {
-      const stage = entropyReductionStages.value[stageKey]
-      const data = entropyReductionData[stageKey]
-      if (!stage) return
       const currentIndex = stageOrder.indexOf(stageKey)
       if (currentIndex < stageOrder.length - 1) {
         const nextStageKey = stageOrder[currentIndex + 1]
         entropyReductionStages.value[nextStageKey].unlocked = true
         currentEntropyStage.value = nextStageKey
-        // 触发阶段完成事件
-        addEvent({
-          title: '熵减突破',
-          description: `完成${stage.name}阶段，解锁${data[nextStageKey].name}`,
-          type: 'entropy'
+        Object.keys(buildingsData).forEach(key => {
+          if (buildingsData[key].entropyStage === nextStageKey && !buildings.value[key].unlocked) {
+            buildings.value[key].unlocked = true
+          }
         })
-      }
-      // 解锁相关科技
-      const stageTechMap = {
-        atomicOrdering: ['atomicManipulation'],
-        molecularCooling: [
-          'thermalControl',
-          'quantumComputing',
-          'lowPotentialTrapTech',
-          'quantumDecoherenceTech',
-          'brownianCaptureTech',
-          'nanoManufacturing'
-        ],
-        stellarExtinction: ['stellarEngineering'],
-        blackholeDecompression: ['blackholePhysics', 'spacetimeManipulation'],
-        energyMaterialization: ['energyConversion'],
-        universalUnification: ['universalTheory']
-      }
-      const techsToUnlock = stageTechMap[stageKey] || []
-      techsToUnlock.forEach(techKey => {
-        if (technologies.value[techKey]) {
-          technologies.value[techKey].unlocked = true
-        }
-      })
-      // 恒星熄灭阶段自动解锁暗物质收集器和科技
-      if (stageKey === 'stellarExtinction') {
-        buildings.value.darkMatterCollector.unlocked = true
-        technologies.value.darkMatterExtraction.unlocked = true
-      }
-      // 在推进到分子冷却阶段时自动解锁热控制科技
-      if (stageKey === 'molecularCooling') {
-        technologies.value.thermalControl.unlocked = true
-      }
-      // 黑洞解压阶段自动解锁反物质合成器和科技
-      if (stageKey === 'blackholeDecompression') {
-        buildings.value.antiMatterSynthesizer.unlocked = true
-        technologies.value.antiMatterSynthesis.unlocked = true
-      }
-      // 分子冷却阶段推进时自动解锁纳米工厂和纳米制造科技
-      if (stageKey === 'molecularCooling') {
-        buildings.value.nanoFactory.unlocked = true
-        technologies.value.nanoManufacturing.unlocked = true
       }
     }
 
-    // 熵减进程
+    // 执行熵减
     const performEntropyReduction = (times = 1) => {
       for (let i = 0; i < times; i++) {
         const currentStage = entropyReductionStages.value[currentEntropyStage.value]
@@ -245,14 +200,6 @@ export const useGameStore = defineStore(
 
     const getEntropyReductionBonus = () => {
       let bonus = 1
-      // 量子计算机提升熵减效率
-      if (buildings.value.quantumComputer.count > 0) {
-        bonus += buildings.value.quantumComputer.count * buildings.value.quantumComputer.level * 0.1
-      }
-      // 时空传送门提升时空操控能力
-      if (buildings.value.spacetimePortal.count > 0) {
-        bonus += buildings.value.spacetimePortal.count * buildings.value.spacetimePortal.level * 0.2
-      }
       // 科技效率加成
       const currentTech = getCurrentStageTech()
       if (currentTech && currentTech.efficiency) {
@@ -609,7 +556,8 @@ export const useGameStore = defineStore(
       buildRatio,
       entropyGap,
       progressRatio,
-      isGm
+      isGm,
+      stageOrder
     }
   },
   {

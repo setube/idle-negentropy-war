@@ -162,8 +162,9 @@
 
   // 检查是否可以批量熵减
   const canPerformEntropyReductionBatch = times => {
-    const cost = currentData.value.cost
-    return Object.entries(cost).every(([resource, amount]) => resources.value[resource] >= amount * times)
+    return Object.entries(currentData.value.cost).every(
+      ([resource, amount]) => resources.value[resource] >= amount * times
+    )
   }
 </script>
 
