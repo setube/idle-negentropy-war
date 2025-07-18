@@ -18,6 +18,9 @@ const checkAchievement = (cfg, state, gameStore) => {
         if (cond.type === 'tech') return gameStore.technologies[cond.tech]?.unlocked
         if (cond.type === 'building') return gameStore.buildings[cond.building]?.count >= (cond.target || 1)
         if (cond.type === 'entropyStage') return gameStore.entropyReductionStages[cond.entropyStage]?.unlocked
+        if (cond.type === 'allTech') return Object.values(gameStore.technologies).every(t => t.unlocked)
+        if (cond.type === 'allEntropyStage')
+          return Object.values(gameStore.entropyReductionStages).every(s => s.unlocked)
         return false
       })
     default:
@@ -27,16 +30,14 @@ const checkAchievement = (cfg, state, gameStore) => {
 
 // 计算奖励
 const getAchievementReward = (cfg, state) => {
-  if (cfg.reward) return cfg.reward
-  // 兼容旧数据
   if (cfg.resource && cfg.baseReward) {
     const reward = {}
     cfg.resource.forEach(res => {
-      reward[res] = Math.floor(cfg.baseReward * Math.pow(cfg.rewardMultiplier || 1, state.level))
+      reward[res] = cfg.baseReward * cfg.rewardMultiplier * (state.level + 1)
     })
     return reward
   }
-  return {}
+  return cfg.reward
 }
 
 // 领取成就奖励

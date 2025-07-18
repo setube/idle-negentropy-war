@@ -56,7 +56,7 @@
       :key="index"
       type="success"
       @click="gameStore.performEntropyReduction(item)"
-      :disabled="!canPerformEntropyReductionBatch(item)"
+      :disabled="!canPerformEntropyReductionBatch(item) || currentStage.progress >= currentData.maxProgress"
       class="entropy-button"
     >
       {{ canPerformEntropyReductionBatch(item) ? `执行熵减 (×${item})` : '资源不足' }}
@@ -139,12 +139,6 @@
     return currentTech?.efficiency || 1
   })
 
-  // 检查是否可以执行熵减
-  const canPerformEntropyReduction = computed(() => {
-    if (!currentStage.value || !currentStage.value.unlocked) return false
-    return gameStore.canAfford(currentData.value.cost)
-  })
-
   // 检查单个资源是否足够
   const canAffordResource = (resource, amount) => {
     return resources.value[resource] >= amount
@@ -153,9 +147,9 @@
   // 获取阶段状态
   const getStageStatus = stageKey => {
     const stage = entropyReductionStages.value[stageKey]
-    if (!stage) return '未知'
-    if (stageKey === currentEntropyStage.value) return '进行中'
-    if (stage.progress >= stage.maxProgress) return '已完成'
+    if (stageKey === currentEntropyStage.value && stage.progress < entropyReductionData[stageKey].maxProgress)
+      return '进行中'
+    if (stage.progress >= entropyReductionData[stageKey].maxProgress) return '已完成'
     if (!stage.unlocked) return '未解锁'
     return '已解锁'
   }

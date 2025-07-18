@@ -1,23 +1,25 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { decryptData, encryptData } from '@/plugins/crypto'
 import buildingsData from '@/data/buildings'
 import technologiesData from '@/data/technologies'
 import entropyReductionData from '@/data/entropyReductions'
 import resourcesData from '@/data/resources'
+import explorationResData from '@/data/explorationRes'
 import achievementsData from '@/data/achievements'
 import { useAchievementService } from '@/plugins/achievementService'
+import { ElNotification } from 'element-plus'
 
 export const useGameStore = defineStore(
   'game',
   () => {
-    // 核心游戏状态
+    // 游戏状态
+    const isGm = ref(false)
     const gameTime = ref(0) // 游戏时间（天）
     const civilizationLevel = ref(0) // 文明等级
     // 宇宙状态
     const universeState = ref('chaos') // 'order' | 'chaos'
-    const tripleStarDeviation = ref(0) // 三体运动偏差值
-    const reaperThreat = ref(0) // 收割者威胁度
+    const tripleStarDeviation = ref(0)
     // 事件系统
     const events = ref([])
     const activeEvent = ref(null)
@@ -37,13 +39,23 @@ export const useGameStore = defineStore(
     })
     // 当前熵减阶段
     const currentEntropyStage = ref('atomicOrdering')
+    // 熵减速率
+    const entropyReductionRate = ref(0)
+    // 坐标暴露值上限
+    const coordinateExposureMax = ref(0)
     // 资源系统
     const resources = ref({})
     Object.keys(resourcesData).forEach(key => {
       resources.value[key] = resourcesData[key].count
     })
     if (resources.value['[object Object]']) delete resources.value['[object Object]']
-
+    // 探索相关资源
+    const explorationres = ref({})
+    Object.keys(explorationResData).forEach(key => {
+      explorationres.value[key] = explorationResData[key].count
+    })
+    // 探索冷却
+    const cooldowns = ref({})
     // 科技
     const technologies = ref({})
     Object.keys(technologiesData).forEach(key => {
@@ -55,11 +67,8 @@ export const useGameStore = defineStore(
     // 建筑
     const buildings = ref({})
     Object.keys(buildingsData).forEach(key => {
-      buildings.value[key] = {
-        count: 0,
-        level: 0,
-        unlocked: buildingsData[key].unlocked
-      }
+      const { count, level, unlocked } = buildingsData[key]
+      buildings.value[key] = { count, level, unlocked }
     })
     // 成就系统状态
     const achievements = ref({})
@@ -74,58 +83,80 @@ export const useGameStore = defineStore(
       }
     })
 
+    // 毕业强度计算
+    const techRatio = computed(() => {
+      const unlocked = Object.values(technologies.value).filter(t => t.unlocked).length
+      const total = Object.keys(technologies.value).length
+      return total ? unlocked / total : 0
+    })
+
+    const stageOrder = [
+      'atomicOrdering',
+      'molecularCooling',
+      'stellarExtinction',
+      'blackholeDecompression',
+      'energyMaterialization',
+      'universalUnification'
+    ]
+
+    const stageRatio = computed(() => {
+      const lastIndex = stageOrder.length - 1
+      const currentIndex = stageOrder.findIndex(s => currentEntropyStage.value === s)
+      return Math.max(0, Math.min(1, currentIndex / lastIndex))
+    })
+
+    const buildRatio = computed(() => {
+      const maxLevel = 100 // 理论满级
+      const totalLevel = Object.values(buildings.value).reduce((sum, b) => sum + (b.level || 0), 0)
+      const maxTotal = Object.keys(buildings.value).length * maxLevel
+      return maxTotal ? totalLevel / maxTotal : 0
+    })
+
+    const entropyGap = computed(() => {
+      const stages = Object.values(entropyReductionStages.value)
+      const entropy = Object.values(entropyReductionData)
+      const maxEntropy = entropy.reduce((sum, s) => sum + (s.maxProgress || 0), 0)
+      const currentEntropy = stages.reduce((sum, s) => sum + (s.progress || 0), 0)
+      const max = (maxEntropy - currentEntropy) / maxEntropy
+      return max === 0 ? 1 : max
+    })
+
+    const progressRatio = computed(() => {
+      return (techRatio.value + stageRatio.value + buildRatio.value + entropyGap.value) / 4
+    })
+
     // 事件类型
     const triggerRandomEvent = () => {
       if (gameTime.value > 0 && gameTime.value % 300 === 0) {
+        const duration = 3650
+        const remaining = duration
+        const day = duration / 365
         const rand = Math.random()
+        let title, type, description
         if (rand < 0.1) {
-          // 科技突破
-          activeEvent.value = {
-            type: 'breakthrough',
-            title: '科技突破',
-            description: '全体产出翻倍，持续60天',
-            duration: 60,
-            remaining: 60
-          }
+          title = '科技突破'
+          type = 'breakthrough'
+          description = `全体产出翻倍，持续${day}年`
           eventBonus.value = 2
-          addEvent({
-            timestamp: Date.now(),
-            title: '科技突破',
-            description: '全体产出翻倍，持续60天',
-            type: 'breakthrough'
-          })
+          // 科技突破
+          activeEvent.value = { type, title, description, duration, remaining }
+          addEvent({ timestamp: Date.now(), title, description, type })
         } else if (rand < 0.18) {
-          // 宇宙灾变
-          activeEvent.value = {
-            type: 'disaster',
-            title: '宇宙灾变',
-            description: '所有产出减半，持续60天',
-            duration: 60,
-            remaining: 60
-          }
+          title = '宇宙灾变'
+          type = 'disaster'
+          description = `所有产出减半，持续${day}年`
           eventBonus.value = 0.5
-          addEvent({
-            timestamp: Date.now(),
-            title: '宇宙灾变',
-            description: '所有产出减半，持续60天',
-            type: 'disaster'
-          })
+          // 宇宙灾变
+          activeEvent.value = { type, title, description, duration, remaining }
+          addEvent({ timestamp: Date.now(), title, description, type })
         } else if (rand < 0.25) {
-          // 贸易繁荣
-          activeEvent.value = {
-            type: 'tradeboom',
-            title: '贸易繁荣',
-            description: '纳米材料产出翻倍，持续60天',
-            duration: 60,
-            remaining: 60
-          }
+          title = '贸易繁荣'
+          type = 'tradeboom'
+          description = `纳米材料产出翻倍，持续${day}年`
           eventBonus.value = 1
-          addEvent({
-            timestamp: Date.now(),
-            title: '贸易繁荣',
-            description: '纳米材料产出翻倍，持续60天',
-            type: 'tradeboom'
-          })
+          // 贸易繁荣
+          activeEvent.value = { type, title, description, duration, remaining }
+          addEvent({ timestamp: Date.now(), title, description, type })
         }
       }
     }
@@ -135,15 +166,6 @@ export const useGameStore = defineStore(
       const stage = entropyReductionStages.value[stageKey]
       const data = entropyReductionData[stageKey]
       if (!stage) return
-      // 解锁下一个阶段
-      const stageOrder = [
-        'atomicOrdering',
-        'molecularCooling',
-        'stellarExtinction',
-        'blackholeDecompression',
-        'energyMaterialization',
-        'universalUnification'
-      ]
       const currentIndex = stageOrder.indexOf(stageKey)
       if (currentIndex < stageOrder.length - 1) {
         const nextStageKey = stageOrder[currentIndex + 1]
@@ -216,7 +238,7 @@ export const useGameStore = defineStore(
           achievementService.checkAllAchievements()
           break // 阶段完成后停止批量
         }
-        resources.value.entropyReductionRate += reductionAmount
+        entropyReductionRate.value += reductionAmount
       }
       achievementService.checkAllAchievements()
     }
@@ -293,10 +315,7 @@ export const useGameStore = defineStore(
         const stageBonus = isCurrentStageBuilding ? 2 : 1
         // 产出
         Object.entries(data.outputs).forEach(([res, baseVal]) => {
-          arr.push({
-            res,
-            val: baseVal * info.level * info.count * techEff * stageBonus * eventBonus.value
-          })
+          arr.push({ res, val: baseVal * info.level * info.count * techEff * stageBonus * eventBonus.value })
         })
       }
       return arr
@@ -386,10 +405,8 @@ export const useGameStore = defineStore(
     }
 
     // 返回“建造下一座”或“升级下一级”的实际成本
-    const getDisplayCost = (baseCost, count = 0, level = 1, isUpgrade = false) => {
-      const factor = (isUpgrade ? level + 1 : level) * count * 1.7 || 1
-      return calcDynamicCost(baseCost, factor)
-    }
+    const getDisplayCost = (baseCost, count = 0, level = 1, isUpgrade = false) =>
+      calcDynamicCost(baseCost, isUpgrade ? (level + 1) * 1.7 || 1 : count * 1.7 || 1)
 
     // 返回能否“建造下一座”或“升级下一级”
     const updateDisplayCost = (baseCost, count = 0, level = 1, isUpgrade = false) => {
@@ -415,11 +432,11 @@ export const useGameStore = defineStore(
         })
       })
       // 更新坐标暴露值上限
-      resources.value.coordinateExposureMax = 100 + max
+      coordinateExposureMax.value = 100 + max
       // 更新熵减速率
-      resources.value.entropyReductionRate = totalProduction * (universeState.value === 'order' ? 3 : 0.1)
+      entropyReductionRate.value = totalProduction * (universeState.value === 'order' ? 3 : 0.1)
       // 检查宇宙状态切换
-      if (resources.value.entropyReductionRate > 1 && universeState.value === 'chaos') {
+      if (entropyReductionRate.value > 1 && universeState.value === 'chaos') {
         universeState.value = 'order'
         setTimeout(() => {
           universeState.value = 'chaos'
@@ -481,11 +498,13 @@ export const useGameStore = defineStore(
 
     // 降维打击判定逻辑前，增加冷却判断
     const checkDarkForestStrike = () => {
-      const { coordinateExposure, coordinateExposureMax } = resources.value
+      const { coordinateExposure } = resources.value
       // 冷却期间或者阈值小于100或者文明等级小于1不触发打击
-      if (exposureCooldown.value > 0 || coordinateExposure < coordinateExposureMax || civilizationLevel.value < 3)
+      if (exposureCooldown.value > 0 || coordinateExposure < coordinateExposureMax.value || civilizationLevel.value < 3)
         return
       if (Math.random() < 1 && civilizationLevel.value < 10) {
+        // 冷却
+        exposureCooldown.value = 3650
         // 惩罚递增
         Object.values(technologies.value).forEach(tech => {
           if (tech.unlocked) {
@@ -496,8 +515,6 @@ export const useGameStore = defineStore(
         if (coordinateExposure !== undefined) {
           resources.value.coordinateExposure = 0
         }
-        // 冷却
-        exposureCooldown.value = 60
         // 所有建筑的等级和数量减半
         Object.values(buildings.value).forEach(b => {
           b.level = Math.max(1, Math.floor(b.level / 2))
@@ -507,24 +524,18 @@ export const useGameStore = defineStore(
             delete buildings.value[b]
           }
         })
-        events.value.unshift({
-          title: '降维打击',
-          description: `由于坐标暴露过高，文明遭受降维打击，科技效率下降！所有建筑等级和数量损失过半！如果建筑等级或数量过低建筑会被移除！暴露值已清零，60天内不会再次被打击。`,
-          type: 'strike'
-        })
-      } else if (civilizationLevel.value > 10) {
-        events.value.unshift({
-          title: '黑暗森林突破',
-          description: '你的文明已超越黑暗森林，降维打击对你无效！',
-          type: 'strike'
-        })
+        const title = '降维打击'
+        const message =
+          '由于坐标暴露过高，文明遭受降维打击，科技效率下降！所有建筑等级和数量损失过半！如果建筑等级或数量过低建筑会被移除！暴露值已清零，10年内不会再次被打击。'
+        ElNotification({ title, message })
+        events.value.unshift({ title, description: message, type: 'strike' })
       }
     }
 
     const formatTime = seconds => {
       const totalDays = Math.floor(seconds) // 总天数
-      const years = Math.floor(totalDays / 360)
-      const months = Math.floor((totalDays % 360) / 30) || 1
+      const years = Math.floor(totalDays / 365)
+      const months = Math.floor((totalDays % 365) / 30) || 1
       const days = totalDays % 30 || 1
       return `${years}年${months}月${days}天`
     }
@@ -561,11 +572,11 @@ export const useGameStore = defineStore(
       gameTime,
       civilizationLevel,
       resources,
+      explorationres,
       technologies,
       buildings,
       universeState,
       tripleStarDeviation,
-      reaperThreat,
       events,
       activeEvent,
       eventBonus,
@@ -588,7 +599,17 @@ export const useGameStore = defineStore(
       updateDisplayCost,
       formatTime,
       achievements,
-      formatNumber
+      formatNumber,
+      addEvent,
+      entropyReductionRate,
+      coordinateExposureMax,
+      cooldowns,
+      techRatio,
+      stageRatio,
+      buildRatio,
+      entropyGap,
+      progressRatio,
+      isGm
     }
   },
   {

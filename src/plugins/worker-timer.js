@@ -1,10 +1,9 @@
-// gameClock.worker.js
 let running = false
-let interval = 1000 // 1 tick = 1 秒
+let interval = 1000
 
 const loop = () => {
   if (!running) return
-  self.postMessage('tick') // 固定 1 秒 1 tick
+  self.postMessage('tick')
   setTimeout(loop, interval)
 }
 

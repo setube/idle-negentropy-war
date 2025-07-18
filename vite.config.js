@@ -39,13 +39,13 @@ export default defineConfig({
     }
   },
   plugins: [
+    vue(),
     AutoImport({
       resolvers: [ElementPlusResolver()]
     }),
     Components({
       resolvers: [ElementPlusResolver()]
     }),
-    vue(),
     vitePluginBundleObfuscator({
       log: false,
       enable: true,
@@ -75,5 +75,8 @@ export default defineConfig({
   },
   worker: {
     format: 'es'
+  },
+  esbuild: {
+    legalComments: 'none'
   }
 })

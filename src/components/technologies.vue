@@ -1,5 +1,4 @@
 <template>
-  <!-- 科技树 -->
   <el-card class="tech-panel" shadow="never">
     <template #header>
       <div class="card-header">
@@ -55,14 +54,9 @@
   const gameStore = useGameStore()
 
   const visibleTechnologies = computed(() => {
-    return Object.entries(gameStore.technologies).filter(([name, tech]) => {
-      // 已解锁的始终显示
-      if (tech.unlocked) return true
-      // 当前阶段可解锁的也显示
-      if (tech.entropyStage && tech.entropyStage === gameStore.currentEntropyStage) return true
-      // 支持科技始终显示
-      return ['quantumComputing', 'spacetimeManipulation'].includes(name)
-    })
+    return Object.entries(gameStore.technologies).filter(
+      ([name, tech]) => tech.unlocked || technologiesData[name].entropyStage === gameStore.currentEntropyStage
+    )
   })
 
   const getTechName = tech => {

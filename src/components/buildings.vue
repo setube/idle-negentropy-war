@@ -21,9 +21,6 @@
       >
         <div class="building-info">
           <h4>{{ buildingsData[name].name }}</h4>
-          <p v-if="buildingsData[name].description" class="building-description">
-            {{ buildingsData[name].description }}
-          </p>
         </div>
         <div class="building-upgrade">
           <p>建筑信息:</p>
@@ -33,7 +30,7 @@
         <div class="building-upgrade" v-if="building.count">
           <p>产出信息:</p>
           <div v-for="(item, index) in gameStore.canResource(name)" :key="index">
-            {{ resourcesData[item.res].name }}：{{ item.val > 0 ? '+' : '' }} {{ gameStore.formatNumber(item.val) }} /
+            {{ resourcesData[item.res]?.name }}：{{ item.val > 0 ? '+' : '' }} {{ gameStore.formatNumber(item.val) }} /
             天
           </div>
         </div>
@@ -108,14 +105,9 @@
 
   // 计算属性
   const unlockedBuildings = computed(() =>
-    Object.entries(gameStore.buildings).filter(([name, building]) => {
-      // 已解锁的始终显示
-      if (building.unlocked) return true
-      // 当前阶段可解锁的也显示
-      if (building.entropyStage && building.entropyStage === gameStore.currentEntropyStage) return true
-      // 支持建筑始终显示
-      return ['quantumComputer', 'spacetimePortal'].includes(name)
-    })
+    Object.entries(gameStore.buildings).filter(
+      ([name, building]) => building.unlocked || buildingsData[name].entropyStage === gameStore.currentEntropyStage
+    )
   )
 </script>
 
@@ -152,13 +144,6 @@
     margin: 0;
     font-size: 1.1em;
     color: #4fc3f7;
-  }
-
-  .building-description {
-    margin: 4px 0 0;
-    font-size: 0.9em;
-    color: #bbb;
-    line-height: 1.4;
   }
 
   .building-upgrade {

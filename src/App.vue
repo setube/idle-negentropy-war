@@ -1,16 +1,13 @@
 <template>
   <div id="app">
-    <!-- 游戏标题 -->
     <div class="game-header">
       <h1>{{ title }}{{ version }}</h1>
       <p>{{ desc }}</p>
     </div>
-    <!-- 游戏主界面 -->
     <div class="game-container">
-      <!-- 左侧：游戏接口 -->
       <div class="game-main">
         <div class="game-interface">
-          <!-- 资源面板 -->
+          <!-- 面板 -->
           <el-card class="resource-panel" shadow="never">
             <template #header>
               <div class="card-header">
@@ -28,90 +25,110 @@
                 </el-button-group>
               </div>
             </template>
+            <!-- 资源 -->
             <div class="resource-grid" v-show="activeCategory == 'resourceSys'">
               <div class="resource-item" v-for="(item, index) in resourcesData" :key="index">
                 <el-icon><Star /></el-icon>
                 <span>{{ item.name }}: {{ gameStore.formatNumber(gameStore.resources[index]) }}</span>
               </div>
             </div>
+            <!-- 信息 -->
             <div class="status-grid" v-show="activeCategory == 'cosmicInfo'">
               <div class="status-item">
-                <el-icon><Clock /></el-icon>
                 <span>时间: {{ gameStore.formatTime(gameStore.gameTime) }}</span>
               </div>
               <div class="status-item">
-                <el-icon><Star /></el-icon>
+                <span>科技效率: {{ gameStore.eventBonus }}</span>
+              </div>
+              <div class="status-item">
+                <span>熵减速率: {{ gameStore.entropyReductionRate }}</span>
+              </div>
+              <div class="status-item">
+                <span>坐标暴露值上限: {{ gameStore.coordinateExposureMax }}</span>
+              </div>
+              <div class="status-item">
                 <span>文明等级: {{ gameStore.civilizationLevel }}</span>
               </div>
               <div class="status-item">
-                <el-icon><Compass /></el-icon>
                 <span>存续度: {{ civilizationSurvival.toFixed(2) }}</span>
               </div>
               <div
                 class="status-item"
                 :class="{ chaos: gameStore.universeState === 'chaos', order: gameStore.universeState === 'order' }"
               >
-                <el-icon><Sunny /></el-icon>
                 <span>宇宙状态: {{ gameStore.universeState === 'chaos' ? '混沌态' : '有序态' }}</span>
               </div>
             </div>
-            <div class="universe-grid" v-show="activeCategory == 'cosmicWatch'">
-              <div class="universe-item">
-                <h4>
-                  坐标暴露值
-                  <el-tooltip
-                    class="box-item"
-                    effect="dark"
-                    content="当文明等级>3并且暴露值超过上限会遭受到来自黑暗森林的降维打击(惩罚很严重)"
-                    placement="top"
-                  >
-                    <el-icon><Warning /></el-icon>
-                  </el-tooltip>
-                </h4>
-                <p>
-                  {{
-                    gameStore.formatNumber(gameStore.resources.coordinateExposure) +
-                    '/' +
-                    gameStore.formatNumber(gameStore.resources.coordinateExposureMax)
-                  }}
-                  <el-tag v-if="gameStore.exposureCooldown > 0" type="success" effect="dark" style="margin-left: 8px">
-                    安全期：{{ gameStore.formatTime(gameStore.exposureCooldown) }}
-                  </el-tag>
-                </p>
-                <el-progress
-                  :percentage="
-                    Math.min(
-                      Math.max(
-                        (gameStore.resources.coordinateExposure / gameStore.resources.coordinateExposureMax) * 100,
-                        0
-                      ),
-                      100
-                    )
-                  "
-                  :color="getExposureColor"
-                  :show-text="false"
-                />
+            <!-- 监控 -->
+            <div class="jiankong" v-show="activeCategory == 'cosmicWatch'">
+              <div class="universe-grid">
+                <div class="universe-item">
+                  <h4>
+                    坐标暴露值
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="当文明等级>3并且暴露值超过上限会遭受到来自黑暗森林的降维打击(惩罚很严重)"
+                      placement="top"
+                    >
+                      <el-icon><Warning /></el-icon>
+                    </el-tooltip>
+                  </h4>
+                  <p>
+                    {{
+                      gameStore.formatNumber(gameStore.resources.coordinateExposure) +
+                      '/' +
+                      gameStore.formatNumber(gameStore.coordinateExposureMax)
+                    }}
+                    <el-tag v-if="gameStore.exposureCooldown > 0" type="success" effect="dark" style="margin-left: 8px">
+                      安全期：{{ gameStore.formatTime(gameStore.exposureCooldown) }}
+                    </el-tag>
+                  </p>
+                  <el-progress
+                    :percentage="
+                      Math.min(
+                        Math.max((gameStore.resources.coordinateExposure / gameStore.coordinateExposureMax) * 100, 0),
+                        100
+                      )
+                    "
+                    :color="getExposureColor"
+                    :show-text="false"
+                  />
+                </div>
+                <div class="universe-item">
+                  <h4>
+                    三体偏差值
+                    <el-tooltip
+                      class="box-item"
+                      effect="dark"
+                      content="当三体偏差值达到无限时这个世界会在受到不可抗力因素后毁灭, 完成终极文明后可以阻止"
+                      placement="top"
+                    >
+                      <el-icon><Warning /></el-icon>
+                    </el-tooltip>
+                  </h4>
+                  <p>{{ gameStore.tripleStarDeviation.toFixed(3) }}/∞</p>
+                  <el-progress
+                    :percentage="Math.min(Math.max((gameStore.tripleStarDeviation / 2) * 100, 0), 100)"
+                    :color="getDeviationColor"
+                    :show-text="false"
+                  />
+                </div>
               </div>
-              <div class="universe-item">
-                <h4>
-                  三体偏差值
-                  <el-tooltip
-                    class="box-item"
-                    effect="dark"
-                    content="当三体偏差值达到无限时这个世界会在受到不可抗力因素后毁灭, 完成终极文明后可以阻止"
-                    placement="top"
-                  >
-                    <el-icon><Warning /></el-icon>
-                  </el-tooltip>
-                </h4>
-                <p>{{ gameStore.tripleStarDeviation.toFixed(3) }}/∞</p>
-                <el-progress
-                  :percentage="Math.min(Math.max((gameStore.tripleStarDeviation / 0.5) * 100, 0), 100)"
-                  :color="getDeviationColor"
-                  :show-text="false"
-                />
-              </div>
+              <el-card class="grad-progress-card" shadow="never" style="margin-top: 20px">
+                <template #header>
+                  <span>毕业进度({{ (gameStore.progressRatio * 100).toFixed(1) }}%)</span>
+                </template>
+                <div class="grad-progress-list">
+                  <el-descriptions :column="2" border>
+                    <el-descriptions-item :label="item.name" v-for="item in gradProgress" :key="item">
+                      {{ (item.progress * 100).toFixed(1) }}%
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </div>
+              </el-card>
             </div>
+            <!-- 系统 -->
             <div class="status-controls" v-show="activeCategory == 'entropyMgmt'">
               <el-button
                 @click="toggleGame"
@@ -157,22 +174,21 @@
               </a>
             </div>
           </el-card>
-          <!-- 主要游戏区域 -->
           <div class="main-game-area">
             <el-tabs v-model="activeName">
-              <el-tab-pane :label="item.name" :name="item.type" v-for="(item, index) in tabsList" :key="index">
-                <component :is="item.is" />
-              </el-tab-pane>
+              <template v-for="(item, index) in tabsList" :key="index">
+                <el-tab-pane :label="item.name" :name="item.type" v-if="item.show">
+                  <component :is="item.is" />
+                </el-tab-pane>
+              </template>
             </el-tabs>
           </div>
         </div>
       </div>
-      <!-- 右侧：事件系统 -->
       <div class="game-sidebar">
         <EventSystem />
       </div>
     </div>
-    <!-- 帮助对话框 -->
     <el-dialog
       v-model="showHelp"
       title="熵减战争 - 游戏说明"
@@ -242,7 +258,7 @@
         </p>
         <h3>进度与熵减阶段说明</h3>
         <p>
-          游戏的核心进度完全由“熵减阶段”推进决定。每当你手动完成一个熵减阶段，文明将进入新的时代，解锁新的科技和建筑。只有推进到下一个熵减阶段，才会解锁该阶段的科技和建筑内容。文明时代的变迁、资源体系的扩展、科技树的分支，全部与熵减阶段同步。熵减阶段的推进需要消耗资源，建议优先提升产出和效率，避免陷入资源瓶颈或死局。游戏目标是逐步完成所有熵减阶段，最终实现宇宙单一化，达到最低熵状态。
+          游戏的核心进度完全由“熵减阶段”推进决定。每当你手动完成一个熵减阶段，文明将进入新的时代，解锁新的科技和建筑。只有推进到下一个熵减阶段，才会解锁该阶段的科技和建筑内容。文明时代的变迁、资源体系的扩展、科技的分支，全部与熵减阶段同步。熵减阶段的推进需要消耗资源，建议优先提升产出和效率，避免陷入资源瓶颈或死局。游戏目标是逐步完成所有熵减阶段，最终实现宇宙单一化，达到最低熵状态。
         </p>
         <h3>文明时代推进</h3>
         <p>
@@ -266,9 +282,7 @@
   import { useGameStore } from '@/stores/gameStore'
   import { ref, onBeforeUnmount, computed, onMounted } from 'vue'
   import {
-    Clock,
     Star,
-    Sunny,
     VideoPlay,
     VideoPause,
     QuestionFilled,
@@ -277,11 +291,9 @@
     Upload,
     Position,
     ChatRound,
-    Compass,
     Warning
   } from '@element-plus/icons-vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import 'element-plus/es/components/message-box/style/css'
   import { saveAs } from 'file-saver'
   import resourcesData from '@/data/resources'
   import WorkerTimer from '@/plugins/worker-timer.js?worker'
@@ -290,6 +302,8 @@
   import AchievementPanel from '@/components/AchievementPanel.vue'
   import EntropyProgress from '@/components/EntropyProgress.vue'
   import EventSystem from '@/components/EventSystem.vue'
+  import ExplorationPanel from '@/components/ExplorationPanel.vue'
+  import GmPanel from '@/components/GmPanel.vue'
 
   const version = __APP_VER__
   const title = __APP_TITLE__
@@ -301,6 +315,7 @@
   const worker = new WorkerTimer()
   const activeName = ref('buildings')
   const activeCategory = ref('resourceSys')
+  const gmNum = ref(0)
 
   // 存续度计算
   const civilizationSurvival = computed(() => {
@@ -309,6 +324,14 @@
     return knowledgeDensity * energyDensity
   })
 
+  const gradProgress = computed(() => {
+    return {
+      techRatio: { name: '科技毕业度', progress: gameStore.techRatio },
+      stageRatio: { name: '阶段毕业度', progress: gameStore.stageRatio },
+      buildRatio: { name: '建筑毕业度', progress: gameStore.buildRatio },
+      entropyGap: { name: '熵减完成度', progress: gameStore.entropyGap }
+    }
+  })
   const categories = {
     resourceSys: ['资源', '资源系统'],
     cosmicInfo: ['信息', '宇宙信息'],
@@ -316,16 +339,19 @@
     entropyMgmt: ['系统', '管理系统']
   }
 
-  const tabsList = [
-    { type: 'buildings', name: '建筑系统', is: buildings },
-    { type: 'technologies', name: '科技系统', is: technologies },
-    { type: 'EntropyProgress', name: '熵减进程', is: EntropyProgress },
-    { type: 'achievement', name: '成就系统', is: AchievementPanel }
-  ]
+  const tabsList = computed(() => {
+    return [
+      { type: 'buildings', name: '建筑系统', is: buildings, show: true },
+      { type: 'technologies', name: '科技系统', is: technologies, show: true },
+      { type: 'EntropyProgress', name: '熵减进程', is: EntropyProgress, show: true },
+      { type: 'exploration', name: '宇宙探索', is: ExplorationPanel, show: true },
+      { type: 'achievement', name: '成就系统', is: AchievementPanel, show: true },
+      { type: 'gm', name: 'GM系统', is: GmPanel, show: gameStore.isGm }
+    ]
+  })
 
   const getExposureColor = computed(() => {
-    const { coordinateExposure, coordinateExposureMax } = gameStore.resources
-    const percentage = (coordinateExposure / coordinateExposureMax) * 100
+    const percentage = (gameStore.resources.coordinateExposure / gameStore.coordinateExposureMax) * 100
     if (percentage > 80) return '#f56c6c'
     if (percentage > 60) return '#e6a23c'
     return '#67c23a'
@@ -403,8 +429,15 @@
 
   // 重置游戏
   const resetGame = () => {
+    gmNum.value++
+    if (gmNum.value >= 10) {
+      gameStore.isGm = true
+      ElMessage({ message: 'GM功能已开启', type: 'success' })
+      return
+    }
     ElMessageBox.confirm('你确定要删除数据吗?', '提示', {
       type: 'warning',
+      lockScroll: false,
       distinguishCancelAndClose: true,
       confirmButtonText: '确定',
       cancelButtonText: '取消'
@@ -664,6 +697,12 @@
     .status-controls-item {
       width: 45%;
     }
+  }
+
+  .grad-progress-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
   }
 </style>
 
