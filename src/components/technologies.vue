@@ -6,6 +6,7 @@
       </div>
     </template>
     <div class="tech-grid">
+      <el-alert title="后续科技可以通过提升熵减阶段解锁" type="primary" v-if="visibleTechnologies.length === 1" />
       <div
         v-for="[name, tech] in visibleTechnologies"
         :key="name"

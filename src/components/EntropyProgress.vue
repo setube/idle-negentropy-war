@@ -5,6 +5,12 @@
         <span>熵减进程</span>
       </div>
     </template>
+    <el-alert
+      title="提升熵减阶段可以解锁对应阶段的科技和建筑"
+      type="primary"
+      v-if="currentEntropyStage === 'atomicOrdering'"
+      style="margin-bottom: 10px"
+    />
     <!-- 当前阶段显示 -->
     <div class="current-stage">
       <h4>当前阶段: {{ currentData.name }}</h4>

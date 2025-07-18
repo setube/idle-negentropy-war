@@ -7,6 +7,7 @@
       </div>
     </template>
     <div class="building-grid">
+      <el-alert title="后续建筑可以通过科技系统解锁" type="primary" v-if="unlockedBuildings.length === 1" />
       <div
         v-for="[name, building] in unlockedBuildings"
         :key="name"
