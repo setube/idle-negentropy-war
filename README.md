@@ -4,7 +4,7 @@
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
   <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
-  <a href="https://y.qq.com/n/ryqq/songDetail/001QffDb04FXzY"><img src="https://img.shields.io/badge/%E6%B8%B8%E6%88%8F%E4%B8%BB%E9%A2%98%E6%9B%B2" alt="游戏主题曲"></a>
+  <a href="https://y.qq.com/n/ryqq/songDetail/001QffDb04FXzY"><img src="https://img.shields.io/badge/%E6%B8%B8%E6%88%8F%E4%B8%BB%E9%A2%98%E6%9B%B2-8A2BE2" alt="游戏主题曲"></a>
 </p>
 
 # 熵减战争 (Entropy Reduction War)
