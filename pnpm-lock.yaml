@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@element-plus/icons-vue':
-        specifier: ^2.3.1
-        version: 2.3.1(vue@3.5.17)
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
@@ -30,6 +27,9 @@ importers:
         specifier: ^3.5.17
         version: 3.5.17
     devDependencies:
+      '@vicons/material':
+        specifier: ^0.13.0
+        version: 0.13.0
       '@vitejs/plugin-vue':
         specifier: ^6.0.0
         version: 6.0.0(vite@7.0.3(terser@5.43.1))(vue@3.5.17)
@@ -400,6 +400,9 @@ packages:
 
   '@types/web-bluetooth@0.0.16':
     resolution: {integrity: sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==}
+
+  '@vicons/material@0.13.0':
+    resolution: {integrity: sha512-lKVxFNprM+CaBkUH3gt6VjIeiMsKQl2zARQMwTCZruQl2vRHzyeZiKeCflWS99CEfv2JzX/6y697smxlzyxcVw==}
 
   '@vitejs/plugin-vue@6.0.0':
     resolution: {integrity: sha512-iAliE72WsdhjzTOp2DtvKThq1VBC4REhwRcaA+zPAAph6I+OQhUXv+Xu2KS7ElxYtb7Zc/3R30Hwv1DxEo7NXQ==}
@@ -1395,6 +1398,8 @@ snapshots:
   '@types/validator@13.15.2': {}
 
   '@types/web-bluetooth@0.0.16': {}
+
+  '@vicons/material@0.13.0': {}
 
   '@vitejs/plugin-vue@6.0.0(vite@7.0.3(terser@5.43.1))(vue@3.5.17)':
     dependencies:

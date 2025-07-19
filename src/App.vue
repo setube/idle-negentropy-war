@@ -3,6 +3,20 @@
     <div class="game-header">
       <h1>{{ title }}{{ version }}</h1>
       <p>{{ desc }}</p>
+      <div
+        class="music-vinyl"
+        :class="{ spinning: isPlaying }"
+        @click="toggleMusic"
+        :title="isPlaying ? '暂停音乐' : '播放音乐'"
+      >
+        <div class="music-cover">
+          <img src="/cover.jpg" alt="音乐封面" class="vinyl-img" />
+          <el-icon class="vinyl-icon">
+            <component :is="isPlaying ? MusicNoteOutlined : MusicOffOutlined" />
+          </el-icon>
+        </div>
+      </div>
+      <audio ref="audioRef" src="/music.mp3" loop preload="auto" />
     </div>
     <div class="game-container">
       <div class="game-main">
@@ -28,34 +42,41 @@
             <!-- 资源 -->
             <div class="resource-grid" v-show="activeCategory == 'resourceSys'">
               <div class="resource-item" v-for="(item, index) in resourcesData" :key="index">
-                <el-icon><Star /></el-icon>
+                <el-icon><AutoAwesomeOutlined /></el-icon>
                 <span>{{ item.name }}: {{ gameStore.formatNumber(gameStore.resources[index]) }}</span>
               </div>
             </div>
             <!-- 信息 -->
             <div class="status-grid" v-show="activeCategory == 'cosmicInfo'">
               <div class="status-item">
+                <el-icon><WatchLaterOutlined /></el-icon>
                 <span>时间: {{ gameStore.formatTime(gameStore.gameTime) }}</span>
               </div>
               <div class="status-item">
+                <el-icon><WifiChannelRound /></el-icon>
                 <span>科技效率: {{ gameStore.eventBonus }}</span>
               </div>
               <div class="status-item">
+                <el-icon><TurnSharpLeftOutlined /></el-icon>
                 <span>熵减速率: {{ gameStore.entropyReductionRate }}</span>
               </div>
               <div class="status-item">
+                <el-icon><TrendingUpOutlined /></el-icon>
                 <span>坐标暴露值上限: {{ gameStore.coordinateExposureMax }}</span>
               </div>
               <div class="status-item">
+                <el-icon><WebhookOutlined /></el-icon>
                 <span>文明等级: {{ gameStore.civilizationLevel }}</span>
               </div>
               <div class="status-item">
+                <el-icon><SpokeOutlined /></el-icon>
                 <span>存续度: {{ civilizationSurvival.toFixed(2) }}</span>
               </div>
               <div
                 class="status-item"
                 :class="{ chaos: gameStore.universeState === 'chaos', order: gameStore.universeState === 'order' }"
               >
+                <el-icon><StreamOutlined /></el-icon>
                 <span>宇宙状态: {{ gameStore.universeState === 'chaos' ? '混沌态' : '有序态' }}</span>
               </div>
             </div>
@@ -71,7 +92,7 @@
                       content="当文明等级>3并且暴露值超过上限会遭受到来自黑暗森林的降维打击(惩罚很严重)"
                       placement="top"
                     >
-                      <el-icon><Warning /></el-icon>
+                      <el-icon><ErrorOutlineFilled /></el-icon>
                     </el-tooltip>
                   </h4>
                   <p>
@@ -104,7 +125,7 @@
                       content="当三体偏差值达到无限时这个世界会在受到不可抗力因素后毁灭, 完成终极文明后可以阻止"
                       placement="top"
                     >
-                      <el-icon><Warning /></el-icon>
+                      <el-icon><ErrorOutlineFilled /></el-icon>
                     </el-tooltip>
                   </h4>
                   <p>{{ gameStore.tripleStarDeviation.toFixed(3) }}/∞</p>
@@ -132,12 +153,12 @@
             <div class="status-controls" v-show="activeCategory == 'entropyMgmt'">
               <el-button
                 @click="toggleGame"
-                :icon="gameRunning ? VideoPause : VideoPlay"
+                :icon="gameRunning ? PauseCircleOutlineFilled : PlayCircleOutlineFilled"
                 class="status-controls-item main-action"
               >
                 {{ gameRunning ? '暂停游戏' : '继续游戏' }}
               </el-button>
-              <el-button @click="resetGame" :icon="Refresh" class="status-controls-item secondary-action">
+              <el-button @click="resetGame" :icon="RefreshOutlined" class="status-controls-item secondary-action">
                 重置游戏
               </el-button>
               <el-upload
@@ -149,18 +170,24 @@
                 accept="application/json"
               >
                 <el-icon>
-                  <Upload />
+                  <FileUploadOutlined />
                 </el-icon>
                 导入存档
               </el-upload>
-              <el-button @click="download" :icon="Download" class="status-controls-item secondary-action">
+              <el-button @click="download" :icon="FileDownloadOutlined" class="status-controls-item secondary-action">
                 导出存档
               </el-button>
-              <el-button @click="showHelp = true" :icon="QuestionFilled" class="status-controls-item secondary-action">
+              <el-button
+                @click="showHelp = true"
+                :icon="QuestionMarkOutlined"
+                class="status-controls-item secondary-action"
+              >
                 游戏说明
               </el-button>
               <el-tooltip effect="dark" content="QQ群: 920930589" placement="top">
-                <el-button :icon="ChatRound" class="status-controls-item secondary-action">官方群聊</el-button>
+                <el-button :icon="ChatBubbleOutlineFilled" class="status-controls-item secondary-action">
+                  官方群聊
+                </el-button>
               </el-tooltip>
               <a
                 class="el-button status-controls-item"
@@ -168,10 +195,22 @@
                 href="https://github.com/setube/idle-negentropy-war"
               >
                 <el-icon>
-                  <Position />
+                  <LinkFilled />
                 </el-icon>
                 <span>开源地址</span>
               </a>
+              <el-tooltip effect="dark" content="《熵减协议》- 星缘之境" placement="top">
+                <a
+                  class="el-button status-controls-item"
+                  target="_blank"
+                  href="https://y.qq.com/n/ryqq/songDetail/001QffDb04FXzY"
+                >
+                  <el-icon>
+                    <LibraryMusicOutlined />
+                  </el-icon>
+                  <span>游戏主题曲</span>
+                </a>
+              </el-tooltip>
             </div>
           </el-card>
           <div class="main-game-area">
@@ -282,17 +321,27 @@
   import { useGameStore } from '@/stores/gameStore'
   import { ref, onBeforeUnmount, computed, onMounted } from 'vue'
   import {
-    Star,
-    VideoPlay,
-    VideoPause,
-    QuestionFilled,
-    Refresh,
-    Download,
-    Upload,
-    Position,
-    ChatRound,
-    Warning
-  } from '@element-plus/icons-vue'
+    PauseCircleOutlineFilled,
+    PlayCircleOutlineFilled,
+    RefreshOutlined,
+    FileUploadOutlined,
+    FileDownloadOutlined,
+    QuestionMarkOutlined,
+    ChatBubbleOutlineFilled,
+    LinkFilled,
+    MusicNoteOutlined,
+    MusicOffOutlined,
+    LibraryMusicOutlined,
+    ErrorOutlineFilled,
+    AutoAwesomeOutlined,
+    WatchLaterOutlined,
+    WebhookOutlined,
+    WifiChannelRound,
+    TurnSharpLeftOutlined,
+    TrendingUpOutlined,
+    StreamOutlined,
+    SpokeOutlined
+  } from '@vicons/material'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { saveAs } from 'file-saver'
   import resourcesData from '@/data/resources'
@@ -316,6 +365,20 @@
   const activeName = ref('buildings')
   const activeCategory = ref('resourceSys')
   const gmNum = ref(0)
+  const isPlaying = ref(false)
+  const audioRef = ref(null)
+
+  const toggleMusic = () => {
+    const audio = audioRef.value
+    if (!audio) return
+    if (isPlaying.value) {
+      audio.pause()
+      isPlaying.value = false
+    } else {
+      audio.play()
+      isPlaying.value = true
+    }
+  }
 
   // 存续度计算
   const civilizationSurvival = computed(() => {
@@ -486,6 +549,7 @@
       clearInterval(exposureCooldownTimer.value)
       exposureCooldownTimer.value = null
     }
+    if (audioRef.value) audioRef.value.pause()
   })
 </script>
 
@@ -654,6 +718,9 @@
   .universe-item h4 {
     margin: 0 0 10px 0;
     color: #409eff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .card-header {
@@ -671,6 +738,83 @@
 
   :deep(.el-dialog__title) {
     color: #e0e0e0;
+  }
+
+  .grad-progress-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .music-vinyl {
+    position: absolute;
+    right: 32px;
+    top: 32px;
+    z-index: 10;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 60% 40%, #fff 0%, #222 80%, #000 100%);
+    border: 6px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    animation: spin 10s linear infinite;
+    animation-play-state: paused;
+  }
+
+  .music-vinyl.spinning {
+    animation-play-state: running;
+    box-shadow: 0 8px 32px #409eff88;
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .music-cover {
+    display: grid;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #000a;
+  }
+
+  .music-cover::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .vinyl-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .vinyl-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    color: #fff;
+    text-shadow: 0 0 8px #000a;
+    z-index: 1;
+    font-size: 32px;
   }
 
   @media (max-width: 768px) {
@@ -697,12 +841,26 @@
     .status-controls-item {
       width: 45%;
     }
-  }
 
-  .grad-progress-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 20px;
+    .music-vinyl {
+      width: 51px;
+      height: 51px;
+      right: 20px;
+      top: 20px;
+    }
+
+    .music-cover {
+      border: 2px solid #fff;
+    }
+
+    .vinyl-img {
+      width: 41px;
+      height: 41px;
+    }
+
+    .vinyl-icon {
+      font-size: 20px;
+    }
   }
 </style>
 

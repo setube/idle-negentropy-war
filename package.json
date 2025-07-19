@@ -3,7 +3,7 @@
   "title": "熵减战争",
   "desc": "对抗宇宙熵增的科幻放置游戏",
   "private": true,
-  "version": "1.0.9",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite --port 25710",
@@ -11,7 +11,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.3.1",
     "crypto-js": "^4.2.0",
     "element-plus": "^2.10.3",
     "file-saver": "^2.0.5",
@@ -20,6 +19,7 @@
     "vue": "^3.5.17"
   },
   "devDependencies": {
+    "@vicons/material": "^0.13.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "terser": "^5.43.1",
     "unplugin-auto-import": "^19.3.0",
