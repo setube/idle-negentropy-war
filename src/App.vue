@@ -149,7 +149,7 @@
                 </div>
               </el-card>
             </div>
-            <!-- 系统 -->
+            <!-- 设置 -->
             <div class="status-controls" v-show="activeCategory == 'entropyMgmt'">
               <el-button
                 @click="toggleGame"
@@ -203,7 +203,7 @@
                 <a
                   class="el-button status-controls-item"
                   target="_blank"
-                  href="https://y.qq.com/n/ryqq/songDetail/001QffDb04FXzY"
+                  href="https://y.qq.com/n/ryqq/albumDetail/000P6I8m4OyaDZ"
                 >
                   <el-icon>
                     <LibraryMusicOutlined />
@@ -399,7 +399,7 @@
     resourceSys: ['资源', '资源系统'],
     cosmicInfo: ['信息', '宇宙信息'],
     cosmicWatch: ['监控', '宇宙监控'],
-    entropyMgmt: ['系统', '管理系统']
+    entropyMgmt: ['设置', '系统设置']
   }
 
   const tabsList = computed(() => {

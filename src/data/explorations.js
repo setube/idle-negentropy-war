@@ -7,9 +7,9 @@ export default [
     cost: { energy: 1000, knowledge: 1 },
     cooldown: 600, // 秒
     commonPool: [
-      { res: 'knowledge', min: 0.1, max: 1, weight: 5 },
-      { res: 'matter', min: 200, max: 2000, weight: 3 },
-      { res: 'energy', min: 200, max: 2000, weight: 2 }
+      { res: 'knowledge', min: 0.1, max: 1, weight: 1 },
+      { res: 'matter', min: 200, max: 2000, weight: 4 },
+      { res: 'energy', min: 200, max: 2000, weight: 5 }
     ],
     rarePool: [
       { res: 'alienFragment', chance: 0.03 },
@@ -25,8 +25,8 @@ export default [
     cost: { energy: 2000, matter: 1000 },
     cooldown: 1200,
     commonPool: [
-      { res: 'energy', min: 100, max: 4000, weight: 5 },
-      { res: 'knowledge', min: 0.5, max: 2, weight: 2 }
+      { res: 'energy', min: 100, max: 4000, weight: 9 },
+      { res: 'knowledge', min: 0.5, max: 2, weight: 1 }
     ],
     rarePool: [
       { res: 'singularityCore', chance: 0.02 },
@@ -42,8 +42,8 @@ export default [
     cost: { energy: 1000, knowledge: 1 },
     cooldown: 1800,
     commonPool: [
-      { res: 'knowledge', min: 0.1, max: 1, weight: 5 },
-      { res: 'energy', min: 100, max: 2000, weight: 2 }
+      { res: 'knowledge', min: 0.1, max: 1, weight: 1 },
+      { res: 'energy', min: 100, max: 2000, weight: 9 }
     ],
     rarePool: [{ res: 'techBoost', chance: 0.02 }],
     failReward: { techFragment: 1 },
@@ -57,7 +57,7 @@ export default [
     cooldown: 2400,
     commonPool: [
       { res: 'energy', min: 1000, max: 5000, weight: 5 },
-      { res: 'matter', min: 1000, max: 5000, weight: 5 },
+      { res: 'matter', min: 1000, max: 5000, weight: 4 },
       { res: 'darkMatter', min: 0.1, max: 1, weight: 1 }
     ],
     rarePool: [{ res: 'planetRelic', chance: 0.01 }],
@@ -71,8 +71,9 @@ export default [
     cost: { energy: 1000, knowledge: 1 },
     cooldown: 600,
     commonPool: [
-      { res: 'energy', min: 100, max: 2000, weight: 2 },
-      { res: 'knowledge', min: 0.1, max: 1, weight: 1 }
+      { res: 'energy', min: 100, max: 2000, weight: 8 },
+      { res: 'knowledge', min: 0.1, max: 1, weight: 1 },
+      { res: 'bioOrder', min: 0.1, max: 0.5, weight: 1 }
     ],
     rarePool: [{ res: 'voidCrystal', chance: 0.005 }],
     failReward: { voidLog: 1 },
