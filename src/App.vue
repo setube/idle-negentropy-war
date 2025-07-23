@@ -324,6 +324,7 @@
         </ul>
       </el-scrollbar>
     </el-dialog>
+    <audio ref="bgRef" src="/bg.mp3" loop preload="auto" />
   </div>
 </template>
 
@@ -377,15 +378,19 @@
   const gmNum = ref(0)
   const isPlaying = ref(false)
   const audioRef = ref(null)
+  const bgRef = ref(null)
 
   const toggleMusic = () => {
     const audio = audioRef.value
-    if (!audio) return
+    const bg = bgRef.value
+    if (!audio || !bg) return
     if (isPlaying.value) {
       audio.pause()
+      bg.play()
       isPlaying.value = false
     } else {
       audio.play()
+      bg.pause()
       isPlaying.value = true
     }
   }
@@ -467,8 +472,13 @@
   // 切换游戏状态
   const toggleGame = () => {
     gameRunning.value = !gameRunning.value
-    if (gameRunning.value) startGameLoop()
-    else stopGameLoop()
+    if (gameRunning.value) {
+      startGameLoop()
+      bgRef.value.play()
+    } else {
+      stopGameLoop()
+      bgRef.value.pause()
+    }
   }
 
   // 导出存档
@@ -526,6 +536,7 @@
   // 组件挂载时启动游戏
   onMounted(() => {
     startGameLoop()
+    bgRef.value.play()
     exposureCooldownTimer.value = setInterval(() => {
       if (gameStore.exposureCooldown > 0) {
         gameStore.exposureCooldown--
