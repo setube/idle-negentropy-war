@@ -1,5 +1,5 @@
 export default {
-  knowledge: { name: '知识', count: 0 },
+  knowledge: { name: '知识', count: 0.1 },
   energy: { name: '能量', count: 100 },
   matter: { name: '物质', count: 100 },
   darkMatter: { name: '暗物质', count: 0 },

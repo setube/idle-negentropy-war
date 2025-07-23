@@ -8,7 +8,7 @@ export default {
     progress: 0,
     maxProgress: 1000,
     efficiency: 0.1,
-    cost: { energy: 0.5, matter: 0.5 },
+    cost: { energy: 0.5, matter: 0.5, knowledge: 0.001 },
     effect: '基础熵减，减缓局部热运动'
   },
   molecularCooling: {
@@ -18,7 +18,7 @@ export default {
     progress: 0,
     maxProgress: 5000,
     efficiency: 0.5,
-    cost: { energy: 2.5, matter: 1 },
+    cost: { energy: 2, matter: 1, knowledge: 0.01 },
     effect: '中等熵减，建立分子级有序'
   },
   // 第二阶段：宏观熵减
@@ -29,7 +29,7 @@ export default {
     progress: 0,
     maxProgress: 10000,
     efficiency: 2.0,
-    cost: { energy: 10, matter: 5, darkMatter: 1 },
+    cost: { energy: 10, matter: 5, darkMatter: 1, knowledge: 0.1 },
     effect: '大规模熵减，控制恒星活动'
   },
   blackholeDecompression: {
@@ -39,7 +39,7 @@ export default {
     progress: 0,
     maxProgress: 50000,
     efficiency: 5.0,
-    cost: { energy: 100, matter: 50, darkMatter: 10, antiMatter: 5 },
+    cost: { energy: 100, matter: 50, darkMatter: 10, antiMatter: 5, knowledge: 0.5 },
     effect: '超大规模熵减，信息恢复'
   },
   // 第三阶段：宇宙级熵减
@@ -50,7 +50,7 @@ export default {
     progress: 0,
     maxProgress: 100000,
     efficiency: 10.0,
-    cost: { energy: 1000, matter: 100, darkMatter: 50, antiMatter: 20 },
+    cost: { energy: 1000, matter: 100, darkMatter: 50, antiMatter: 20, knowledge: 1 },
     effect: '宇宙级熵减，能量有序化'
   },
   universalUnification: {
@@ -60,7 +60,7 @@ export default {
     progress: 0,
     maxProgress: 1000000,
     efficiency: 50.0,
-    cost: { energy: 10000, matter: 1000, darkMatter: 100, antiMatter: 50, nanoMaterial: 10 },
+    cost: { energy: 10000, matter: 1000, darkMatter: 100, antiMatter: 50, nanoMaterial: 10, knowledge: 5 },
     effect: '终极熵减，宇宙回归原始状态'
   }
 }

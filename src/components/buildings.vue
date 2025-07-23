@@ -21,49 +21,89 @@
         ]"
       >
         <div class="building-info">
-          <h4>{{ buildingsData[name].name }}</h4>
+          <el-tooltip effect="dark" placement="top">
+            <h4 @click="building.add = !building.add">
+              {{ buildingsData[name].name }}
+              <el-icon>
+                <MinusOutlined v-if="building.add" />
+                <AddOutlined v-else />
+              </el-icon>
+            </h4>
+            <template #content>
+              <div class="tooltip" v-if="building.count">
+                <p>产出信息</p>
+                <div v-for="(item, index) in gameStore.canResource(name)" :key="index">
+                  {{ resourcesData[item.res]?.name }}：{{ item.val > 0 ? '+' : '' }}
+                  {{ gameStore.formatNumber(item.val) }} / 天
+                </div>
+                <div>数量：{{ gameStore.formatNumber(building.count) }}</div>
+                <div>等级：{{ gameStore.formatNumber(building.level) }}</div>
+              </div>
+              <div class="tooltip" v-else>
+                <p>建造消耗</p>
+                <div
+                  v-for="(cost, resource) in gameStore.getDisplayCost(
+                    buildingsData[name].cost,
+                    building.count,
+                    building.level
+                  )"
+                  :key="resource"
+                >
+                  {{ resourcesData[resource].name }}: {{ gameStore.formatNumber(cost) }}
+                </div>
+              </div>
+            </template>
+          </el-tooltip>
         </div>
-        <div class="building-upgrade">
-          <p>建筑信息:</p>
-          <div>数量: {{ gameStore.formatNumber(building.count) }}</div>
-          <div>等级: {{ gameStore.formatNumber(building.level) }}</div>
-        </div>
-        <div class="building-upgrade" v-if="building.count">
-          <p>产出信息:</p>
-          <div v-for="(item, index) in gameStore.canResource(name)" :key="index">
-            {{ resourcesData[item.res]?.name }}：{{ item.val > 0 ? '+' : '' }} {{ gameStore.formatNumber(item.val) }} /
-            天
+        <div :style="{ display: !building.add ? 'none' : '' }">
+          <div class="building-upgrade">
+            <p>建筑信息:</p>
+            <div>数量: {{ gameStore.formatNumber(building.count) }}</div>
+            <div>等级: {{ gameStore.formatNumber(building.level) }}</div>
           </div>
-        </div>
-        <div class="building-upgrade">
-          <p>建造消耗:</p>
-          <div
-            v-for="(cost, resource) in gameStore.getDisplayCost(
-              buildingsData[name].cost,
-              building.count,
-              building.level
-            )"
-            :key="resource"
-          >
-            {{ resourcesData[resource].name }}: {{ gameStore.formatNumber(cost) }}
+          <div class="building-upgrade" v-if="building.count">
+            <p>产出信息:</p>
+            <div v-for="(item, index) in gameStore.canResource(name)" :key="index">
+              {{ resourcesData[item.res]?.name }}：{{ item.val > 0 ? '+' : '' }}
+              {{ gameStore.formatNumber(item.val) }} / 天
+            </div>
           </div>
-        </div>
-        <div class="building-upgrade" v-if="building.count">
-          <p>升级消耗:</p>
-          <div v-if="Object.keys(buildingsData[name].upgradeCost).length">
+          <div class="building-upgrade">
+            <p>建造消耗:</p>
             <div
               v-for="(cost, resource) in gameStore.getDisplayCost(
-                buildingsData[name].upgradeCost,
+                buildingsData[name].cost,
                 building.count,
-                building.level,
-                true
+                building.level
               )"
               :key="resource"
             >
-              {{ resourcesData[resource].name }}: {{ gameStore.formatNumber(cost) }}
+              {{ resourcesData[resource].name }}:
+              <span :style="gameStore.resources[resource] < cost ? 'color: #f56c6c' : 'color: #67c23a'">
+                {{ gameStore.formatNumber(cost) }}
+              </span>
             </div>
           </div>
-          <div v-else>无升级消耗</div>
+          <div class="building-upgrade" v-if="building.count">
+            <p>升级消耗:</p>
+            <div v-if="Object.keys(buildingsData[name].upgradeCost).length">
+              <div
+                v-for="(cost, resource) in gameStore.getDisplayCost(
+                  buildingsData[name].upgradeCost,
+                  building.count,
+                  building.level,
+                  true
+                )"
+                :key="resource"
+              >
+                {{ resourcesData[resource].name }}:
+                <span :style="gameStore.resources[resource] < cost ? 'color: #f56c6c' : 'color: #67c23a'">
+                  {{ gameStore.formatNumber(cost) }}
+                </span>
+              </div>
+            </div>
+            <div v-else>无升级消耗</div>
+          </div>
         </div>
         <el-button
           class="panelButton"
@@ -101,6 +141,7 @@
   import { useGameStore } from '@/stores/gameStore'
   import buildingsData from '@/data/buildings'
   import resourcesData from '@/data/resources'
+  import { AddOutlined, MinusOutlined } from '@vicons/material'
 
   const gameStore = useGameStore()
 
@@ -122,7 +163,6 @@
   const unlockedBuildings = computed(() =>
     Object.entries(gameStore.buildings).filter(([name, building]) => building.unlocked)
   )
-  
 
   onMounted(unlockBuilding)
 </script>
@@ -192,6 +232,11 @@
   .can-afford {
     border-color: #67c23a;
     background: rgba(103, 194, 58, 0.1);
+  }
+
+  .tooltip p {
+    margin: 0;
+    text-align: center;
   }
 
   @media (max-width: 768px) {

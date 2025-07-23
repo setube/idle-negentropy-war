@@ -41,9 +41,19 @@
             </template>
             <!-- 资源 -->
             <div class="resource-grid" v-show="activeCategory == 'resourceSys'">
-              <div class="resource-item" v-for="(item, index) in resourcesData" :key="index">
+              <div class="resource-item" v-for="(item, key) in resourcesData" :key="key">
                 <el-icon><AutoAwesomeOutlined /></el-icon>
-                <span>{{ item.name }}: {{ gameStore.formatNumber(gameStore.resources[index]) }}</span>
+                <el-tooltip class="box-item" effect="dark" placement="top">
+                  <template #content>
+                    <span v-if="gameStore.resourceDelta[key]?.total">
+                      {{ gameStore.formatNumber(gameStore.resourceDelta[key]?.total) }} / 天
+                    </span>
+                    <span v-else>暂无产出</span>
+                  </template>
+                  <span>
+                    <span>{{ item.name }}: {{ gameStore.formatNumber(gameStore.resources[key]) }}</span>
+                  </span>
+                </el-tooltip>
               </div>
             </div>
             <!-- 信息 -->
@@ -62,7 +72,7 @@
               </div>
               <div class="status-item">
                 <el-icon><TrendingUpOutlined /></el-icon>
-                <span>坐标暴露值上限: {{ gameStore.coordinateExposureMax }}</span>
+                <span>坐标暴露值上限: {{ gameStore.formatNumber(gameStore.coordinateExposureMax) }}</span>
               </div>
               <div class="status-item">
                 <el-icon><WebhookOutlined /></el-icon>

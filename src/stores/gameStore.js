@@ -49,6 +49,8 @@ export const useGameStore = defineStore(
       resources.value[key] = resourcesData[key].count
     })
     if (resources.value['[object Object]']) delete resources.value['[object Object]']
+    // 资源增减明细
+    const resourceDelta = ref({})
     // 探索相关资源
     const explorationres = ref({})
     Object.keys(explorationResData).forEach(key => {
@@ -67,8 +69,8 @@ export const useGameStore = defineStore(
     // 建筑
     const buildings = ref({})
     Object.keys(buildingsData).forEach(key => {
-      const { count, level, unlocked } = buildingsData[key]
-      buildings.value[key] = { count, level, unlocked }
+      const { count, level, unlocked, add } = buildingsData[key]
+      buildings.value[key] = { count, level, unlocked, add }
     })
     // 成就系统状态
     const achievements = ref({})
@@ -128,7 +130,7 @@ export const useGameStore = defineStore(
     // 事件类型
     const triggerRandomEvent = () => {
       if (gameTime.value > 0 && gameTime.value % 300 === 0) {
-        const duration = 3650
+        const duration = 365
         const remaining = duration
         const day = duration / 365
         const rand = Math.random()
@@ -363,6 +365,10 @@ export const useGameStore = defineStore(
 
     // 游戏逻辑
     const updateGame = () => {
+      // 每tick前清空
+      Object.keys(resources.value).forEach(res => {
+        resourceDelta.value[res] = { total: 0 }
+      })
       gameTime.value++
       // 更新三体运动偏差
       tripleStarDeviation.value = Math.log10(civilizationLevel.value + 1 + gameTime.value / 100000)
@@ -374,6 +380,7 @@ export const useGameStore = defineStore(
         // 产出
         canResource(key).forEach(({ res, val }) => {
           resources.value[res] += val
+          resourceDelta.value[res].total += val
           totalProduction += item.count
           max += item.count * item.level
         })
@@ -446,12 +453,14 @@ export const useGameStore = defineStore(
     // 降维打击判定逻辑前，增加冷却判断
     const checkDarkForestStrike = () => {
       const { coordinateExposure } = resources.value
+      const duration = 1825
+      const day = duration / 365
       // 冷却期间或者阈值小于100或者文明等级小于1不触发打击
       if (exposureCooldown.value > 0 || coordinateExposure < coordinateExposureMax.value || civilizationLevel.value < 3)
         return
       if (Math.random() < 1 && civilizationLevel.value < 10) {
         // 冷却
-        exposureCooldown.value = 3650
+        exposureCooldown.value = duration
         // 惩罚递增
         Object.values(technologies.value).forEach(tech => {
           if (tech.unlocked) {
@@ -472,8 +481,7 @@ export const useGameStore = defineStore(
           }
         })
         const title = '降维打击'
-        const message =
-          '由于坐标暴露过高，文明遭受降维打击，科技效率下降！所有建筑等级和数量损失过半！如果建筑等级或数量过低建筑会被移除！暴露值已清零，10年内不会再次被打击。'
+        const message = `由于坐标暴露过高，文明遭受降维打击，科技效率下降！所有建筑等级和数量损失过半！如果建筑等级或数量过低建筑会被移除！暴露值已清零，${day}年内不会再次被打击。`
         ElNotification({ title, message })
         events.value.unshift({ title, description: message, type: 'strike' })
       }
@@ -557,7 +565,8 @@ export const useGameStore = defineStore(
       entropyGap,
       progressRatio,
       isGm,
-      stageOrder
+      stageOrder,
+      resourceDelta
     }
   },
   {

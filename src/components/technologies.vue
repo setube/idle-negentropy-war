@@ -27,7 +27,9 @@
         <div class="tech-cost" v-if="!tech.unlocked">
           <p>解锁消耗:</p>
           <div v-for="(cost, resource) in technologiesData[name].cost" :key="resource">
-            {{ resourcesData[resource].name }}: {{ formatNumber(cost) }}
+            <span :style="gameStore.resources[resource] < cost ? 'color: #f56c6c' : 'color: #67c23a'">
+              {{ resourcesData[resource].name }}: {{ formatNumber(cost) }}
+            </span>
           </div>
         </div>
         <el-button

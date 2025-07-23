@@ -6,7 +6,13 @@
       </div>
     </template>
     <el-tabs v-model="activeCategory">
-      <el-tab-pane :label="cat.label" :name="cat.key" v-for="cat in categories" :key="cat.key" />
+      <el-tab-pane :label="cat.label" :name="cat.key" v-for="cat in categories" :key="cat.key">
+        <template #label>
+          <el-badge :value="completedCountMap[cat.key]" class="item">
+            {{ cat.label }}
+          </el-badge>
+        </template>
+      </el-tab-pane>
       <div class="achievement-grid">
         <div
           v-for="cfg in filteredAchievements"
@@ -115,6 +121,15 @@
   ]
   const activeCategory = ref('resource')
   const filteredAchievements = computed(() => achievementsData.filter(a => a.type === activeCategory.value))
+  const completedCountMap = computed(() => {
+    const map = {}
+    categories.forEach(cat => {
+      map[cat.key] = achievementsData
+        .filter(a => a.type === cat.key)
+        .filter(cfg => gameStore.achievements[cfg.id]?.completed).length
+    })
+    return map
+  })
 </script>
 
 <style scoped>

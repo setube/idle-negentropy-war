@@ -65,7 +65,22 @@
       :disabled="!canPerformEntropyReductionBatch(item) || currentStage.progress >= currentData.maxProgress"
       class="entropy-button"
     >
-      {{ canPerformEntropyReductionBatch(item) ? `执行熵减 (×${item})` : '资源不足' }}
+      <el-tooltip class="box-item" effect="dark" placement="top">
+        <template #content>
+          {{
+            Object.entries(currentData.cost)
+              .map(([k, v]) => `${gameStore.formatNumber(v * item)} ${resourcesData[k]?.name || k}`)
+              .join('、')
+          }}
+        </template>
+        {{
+          canPerformEntropyReductionBatch(item)
+            ? currentStage.progress >= currentData.maxProgress
+              ? '阶段已完成'
+              : `执行熵减 (×${item})`
+            : '资源不足'
+        }}
+      </el-tooltip>
     </el-button>
     <!-- 所有阶段概览 -->
     <div class="all-stages">
