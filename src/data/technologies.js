@@ -5,7 +5,7 @@ export default {
     unlocked: true,
     efficiency: 1,
     prerequisites: [],
-    cost: { energy: 10, matter: 5 },
+    cost: { energy: 10, matter: 5, knowledge: 5 },
     group: '基础科技',
     effect: '解锁原子排序能力',
     entropyStage: 'atomicOrdering'

@@ -4,7 +4,7 @@ export default {
   atomicSorter: {
     name: '原子排序器',
     count: 1,
-    level: 0,
+    level: 1,
     add: true,
     outputs: { coordinateExposure: 0.05, energy: 0.1, matter: 0.1, knowledge: 0.001 },
     cost: { matter: 10, energy: 5, knowledge: 0.01 },

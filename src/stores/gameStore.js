@@ -477,7 +477,7 @@ export const useGameStore = defineStore(
           b.count = Math.max(0, Math.floor(b.count / 2))
           // 移除建筑
           if ((b.level && !b.count) || (!b.level && !b.count)) {
-            delete buildings.value[b]
+            b.unlocked = false
           }
         })
         const title = '降维打击'
@@ -490,7 +490,7 @@ export const useGameStore = defineStore(
     const formatTime = seconds => {
       const totalDays = Math.floor(seconds) // 总天数
       const years = Math.floor(totalDays / 365)
-      const months = Math.floor((totalDays % 365) / 30) || 1
+      const months = Math.floor((totalDays % 365) / 30)
       const days = totalDays % 30 || 1
       return `${years}年${months}月${days}天`
     }
