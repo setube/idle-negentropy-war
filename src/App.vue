@@ -325,6 +325,12 @@
       </el-scrollbar>
     </el-dialog>
     <audio ref="bgRef" src="/bg.mp3" loop preload="auto" />
+    <div class="bg" @click="toggleGame" v-if="!gameRunning">
+      <div class="spinner">
+        <PlayCircleOutlineFilled class="circular" />
+        <p class="text">游戏已暂停</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -369,7 +375,7 @@
   const title = __APP_TITLE__
   const desc = __APP_DESC__
   const gameStore = useGameStore()
-  const gameRunning = ref(true)
+  const gameRunning = ref(false)
   const showHelp = ref(false)
   const exposureCooldownTimer = ref(null)
   const worker = new WorkerTimer()
@@ -535,8 +541,10 @@
 
   // 组件挂载时启动游戏
   onMounted(() => {
-    startGameLoop()
-    bgRef.value.play()
+    if (gameRunning.value) {
+      startGameLoop()
+      bgRef.value.play()
+    }
     exposureCooldownTimer.value = setInterval(() => {
       if (gameStore.exposureCooldown > 0) {
         gameStore.exposureCooldown--
@@ -836,6 +844,37 @@
     text-shadow: 0 0 8px #000a;
     z-index: 1;
     font-size: 32px;
+  }
+
+  .bg {
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2001;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    right: 0;
+    top: 0;
+  }
+
+  .bg .spinner {
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    width: 100%;
+    margin-top: calc((0px - 50px) / 2);
+    color: var(--el-color-primary);
+  }
+
+  .bg .circular {
+    display: inline;
+    height: 50px;
+    width: 50px;
+  }
+
+  .bg .text {
+    font-size: 14px;
+    margin: 3px 0;
   }
 
   @media (max-width: 768px) {
